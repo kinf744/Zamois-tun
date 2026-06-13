@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/nav_home">
+
+    <fragment
+        android:id="@+id/nav_home"
+        android:name="com.kighmu.vpn.ui.fragments.HomeFragment"
+        android:label="@string/nav_home" />
+
+    <fragment
+        android:id="@+id/nav_config"
+        android:name="com.kighmu.vpn.ui.fragments.ConfigFragment"
+        android:label="@string/nav_config" />
+
+    <fragment
+        android:id="@+id/nav_logs"
+        android:name="com.kighmu.vpn.ui.fragments.LogsFragment"
+        android:label="@string/nav_logs" />
+
+    <fragment
+        android:id="@+id/nav_settings"
+        android:name="com.kighmu.vpn.ui.fragments.SettingsFragment"
+        android:label="@string/nav_settings" />
+
+</navigation>

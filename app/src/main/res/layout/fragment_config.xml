@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#0D1117">
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none">
+        <LinearLayout
+            android:id="@+id/tab_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="4dp">
+            <Button android:id="@+id/tab_slowdns" android:layout_width="wrap_content" android:layout_height="36dp" android:text="SlowDNS" android:textSize="11sp" android:backgroundTint="#2196F3" android:textColor="#FFFFFF" android:layout_margin="2dp" android:paddingStart="10dp" android:paddingEnd="10dp"/>
+            <Button android:id="@+id/tab_http" android:layout_width="wrap_content" android:layout_height="36dp" android:text="HTTP Proxy" android:textSize="11sp" android:backgroundTint="#333344" android:textColor="#FFFFFF" android:layout_margin="2dp" android:paddingStart="10dp" android:paddingEnd="10dp"/>
+
+            <Button android:id="@+id/tab_ssl" android:layout_width="wrap_content" android:layout_height="36dp" android:text="SSH SSL" android:textSize="11sp" android:backgroundTint="#333344" android:textColor="#FFFFFF" android:layout_margin="2dp" android:paddingStart="10dp" android:paddingEnd="10dp"/>
+            <Button android:id="@+id/tab_xray" android:layout_width="wrap_content" android:layout_height="36dp" android:text="V2Ray/Xray" android:textSize="11sp" android:backgroundTint="#333344" android:textColor="#FFFFFF" android:layout_margin="2dp" android:paddingStart="10dp" android:paddingEnd="10dp"/>
+            <Button android:id="@+id/tab_v2dns" android:layout_width="wrap_content" android:layout_height="36dp" android:text="V2Ray+DNS" android:textSize="11sp" android:backgroundTint="#333344" android:textColor="#FFFFFF" android:layout_margin="2dp" android:paddingStart="10dp" android:paddingEnd="10dp"/>
+            <Button android:id="@+id/tab_hysteria" android:layout_width="wrap_content" android:layout_height="36dp" android:text="Hysteria" android:textSize="11sp" android:backgroundTint="#333344" android:textColor="#FFFFFF" android:layout_margin="2dp" android:paddingStart="10dp" android:paddingEnd="10dp"/>
+            <Button android:id="@+id/tab_zivpn" android:layout_width="wrap_content" android:layout_height="36dp" android:text="ZIVPN" android:textSize="11sp" android:backgroundTint="#333344" android:textColor="#FFFFFF" android:layout_margin="2dp" android:paddingStart="10dp" android:paddingEnd="10dp"/>
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+        <LinearLayout android:id="@+id/config_content" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+
+            <!-- SlowDNS Panel -->
+            <LinearLayout android:id="@+id/panel_slowdns" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="SLOWDNS PROFILES" android:textColor="#4FC3F7" android:textSize="12sp" android:textAllCaps="true"/>
+                    <Button android:id="@+id/btn_add_dns_profile" android:layout_width="36dp" android:layout_height="36dp" android:text="+" android:textSize="20sp" android:backgroundTint="#1565C0" android:textColor="#FFFFFF" android:padding="0dp"/>
+                </LinearLayout>
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Appui long sur un profil pour le modifier, cloner ou supprimer" android:textColor="#666666" android:textSize="11sp" android:layout_marginBottom="8dp"/>
+                <androidx.recyclerview.widget.RecyclerView android:id="@+id/rv_dns_profiles" android:layout_width="match_parent" android:layout_height="wrap_content" android:nestedScrollingEnabled="false"/>
+            </LinearLayout>
+
+            <!-- HTTP Proxy Panel -->
+            <LinearLayout android:id="@+id/panel_http" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+                <!-- Multi-Profil HTTP Proxy -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="HTTP PROXY PROFILES" android:textColor="#4FC3F7" android:textSize="12sp" android:textAllCaps="true"/>
+                    <Button android:id="@+id/btn_add_http_proxy_profile" android:layout_width="36dp" android:layout_height="36dp" android:text="+" android:textSize="20sp" android:backgroundTint="#1565C0" android:textColor="#FFFFFF" android:padding="0dp"/>
+                </LinearLayout>
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Appui long sur un profil pour le modifier, cloner ou supprimer. Cochez plusieurs profils pour activer le multi-tunnel." android:textColor="#666666" android:textSize="11sp" android:layout_marginBottom="8dp"/>
+                <androidx.recyclerview.widget.RecyclerView android:id="@+id/rv_http_proxy_profiles" android:layout_width="match_parent" android:layout_height="wrap_content" android:nestedScrollingEnabled="false" android:layout_marginBottom="8dp"/>
+                <!-- Champs legacy conservés invisibles pour compatibilité code -->
+                <EditText android:id="@+id/et_http_ssh_host" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="gone"/>
+                <EditText android:id="@+id/et_http_ssh_port" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="gone"/>
+                <EditText android:id="@+id/et_http_ssh_user" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="gone"/>
+                <EditText android:id="@+id/et_http_ssh_pass" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="gone"/>
+                <EditText android:id="@+id/et_proxy_host" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="gone"/>
+                <EditText android:id="@+id/et_proxy_port" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="gone"/>
+                <EditText android:id="@+id/et_payload" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="gone"/>
+            </LinearLayout>
+
+            <!-- SSH SSL Panel -->
+            <LinearLayout android:id="@+id/panel_ssl" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="SSH SERVER" android:textColor="#4FC3F7" android:textSize="12sp" android:textAllCaps="true" android:layout_marginBottom="8dp"/>
+                <EditText android:id="@+id/et_ssl_ssh_host" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Host / IP" android:textColor="#FFFFFF" android:textColorHint="#666666" android:backgroundTint="#1A1F2E" android:padding="12dp"/>
+                <EditText android:id="@+id/et_ssl_ssh_port" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Port (22)" android:inputType="number" android:textColor="#FFFFFF" android:textColorHint="#666666" android:backgroundTint="#1A1F2E" android:padding="12dp" android:layout_marginTop="8dp"/>
+                <EditText android:id="@+id/et_ssl_ssh_user" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Username" android:textColor="#FFFFFF" android:textColorHint="#666666" android:backgroundTint="#1A1F2E" android:padding="12dp" android:layout_marginTop="8dp"/>
+                <EditText android:id="@+id/et_ssl_ssh_pass" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Password" android:inputType="textVisiblePassword" android:textColor="#FFFFFF" android:textColorHint="#666666" android:backgroundTint="#1A1F2E" android:padding="12dp" android:layout_marginTop="8dp"/>
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="SSL/TLS SETTINGS" android:textColor="#4FC3F7" android:textSize="12sp" android:textAllCaps="true" android:layout_marginTop="16dp" android:layout_marginBottom="8dp"/>
+                <EditText android:id="@+id/et_sni" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="SNI" android:textColor="#FFFFFF" android:textColorHint="#666666" android:backgroundTint="#1A1F2E" android:padding="12dp"/>
+            </LinearLayout>
+
+            <!-- V2Ray/Xray Panel -->
+            <LinearLayout android:id="@+id/panel_xray" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="V2RAY / XRAY" android:textColor="#4FC3F7" android:textSize="12sp" android:textAllCaps="true" android:layout_marginBottom="12dp"/>
+                <RadioGroup android:id="@+id/rg_xray_mode" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="12dp">
+                    <RadioButton android:id="@+id/rb_xray_link" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Lien (vmess/vless/trojan)" android:textColor="#FFFFFF" android:buttonTint="#4FC3F7" android:textSize="12sp"/>
+                    <RadioButton android:id="@+id/rb_xray_json" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="JSON Config" android:textColor="#FFFFFF" android:buttonTint="#4FC3F7" android:textSize="12sp"/>
+                </RadioGroup>
+                <TextView android:id="@+id/tv_xray_mode_warning" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="⚠️ Veuillez choisir un mode avant de sauvegarder" android:textColor="#FFA726" android:textSize="12sp" android:layout_marginBottom="8dp" android:visibility="gone"/>
+                <LinearLayout android:id="@+id/panel_xray_link" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+                    <EditText android:id="@+id/et_xray_link" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="vmess:// vless:// trojan://" android:textColor="#FFFFFF" android:textColorHint="#666666" android:backgroundTint="#1A1F2E" android:padding="12dp"/>
+                    <TextView android:id="@+id/tv_link_status" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="" android:textColor="#FF5252" android:textSize="12sp" android:layout_marginTop="4dp"/>
+                    <Button android:id="@+id/btn_parse_link" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="PARSER LE LIEN" android:backgroundTint="#1565C0" android:textColor="#FFFFFF" android:layout_marginTop="8dp"/>
+                </LinearLayout>
+                <LinearLayout android:id="@+id/panel_xray_json" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+                    <EditText android:id="@+id/et_xray_json" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Coller la config JSON complète ici..." android:textColor="#FFFFFF" android:textColorHint="#666666" android:backgroundTint="#1A1F2E" android:padding="12dp" android:minLines="8" android:gravity="top" android:fontFamily="monospace" android:textSize="11sp"/>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="8dp">
+                        <Button android:id="@+id/btn_paste_json" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="PASTE" android:backgroundTint="#333344" android:textColor="#FFFFFF" android:textSize="11sp" android:layout_margin="2dp"/>
+                        <Button android:id="@+id/btn_copy_json" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="COPY" android:backgroundTint="#333344" android:textColor="#FFFFFF" android:textSize="11sp" android:layout_margin="2dp"/>
+                        <Button android:id="@+id/btn_format_json" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="FORMAT" android:backgroundTint="#333344" android:textColor="#FFFFFF" android:textSize="11sp" android:layout_margin="2dp"/>
+                        <Button android:id="@+id/btn_select_all_json" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="ALL" android:backgroundTint="#333344" android:textColor="#FFFFFF" android:textSize="11sp" android:layout_margin="2dp"/>
+                    </LinearLayout>
+                    <TextView android:id="@+id/tv_json_status" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="" android:textSize="12sp" android:layout_marginTop="4dp"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- V2Ray+SlowDNS Panel -->
+            <LinearLayout android:id="@+id/panel_v2dns" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="V2RAY+DNS PROFILES" android:textColor="#4FC3F7" android:textSize="12sp" android:textAllCaps="true"/>
+                    <Button android:id="@+id/btn_add_v2dns_profile" android:layout_width="36dp" android:layout_height="36dp" android:text="+" android:textSize="20sp" android:backgroundTint="#1565C0" android:textColor="#FFFFFF" android:padding="0dp"/>
+                </LinearLayout>
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Appui long sur un profil pour le modifier, cloner ou supprimer" android:textColor="#666666" android:textSize="11sp" android:layout_marginBottom="8dp"/>
+                <androidx.recyclerview.widget.RecyclerView android:id="@+id/rv_v2dns_profiles" android:layout_width="match_parent" android:layout_height="wrap_content" android:nestedScrollingEnabled="false"/>
+                <EditText android:id="@+id/et_v2dns_json" android:visibility="gone" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Config JSON V2Ray+DNS (généré automatiquement)" android:textColor="#FFFFFF" android:textColorHint="#666666" android:backgroundTint="#1A1F2E" android:padding="12dp" android:minLines="8" android:gravity="top" android:fontFamily="monospace" android:textSize="11sp" android:layout_marginTop="8dp"/>
+            </LinearLayout>
+
+            <!-- Hysteria Panel -->
+            <LinearLayout android:id="@+id/panel_hysteria" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+                <!-- Multi-Profil Hysteria -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="HYSTERIA PROFILES" android:textColor="#4FC3F7" android:textSize="12sp" android:textAllCaps="true"/>
+                    <Button android:id="@+id/btn_add_hysteria_profile" android:layout_width="36dp" android:layout_height="36dp" android:text="+" android:textSize="20sp" android:backgroundTint="#1565C0" android:textColor="#FFFFFF" android:padding="0dp"/>
+                </LinearLayout>
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Appui long sur un profil pour le modifier, cloner ou supprimer. Cochez plusieurs profils pour activer le multi-tunnel UDP." android:textColor="#666666" android:textSize="11sp" android:layout_marginBottom="8dp"/>
+                <androidx.recyclerview.widget.RecyclerView android:id="@+id/rv_hysteria_profiles" android:layout_width="match_parent" android:layout_height="wrap_content" android:nestedScrollingEnabled="false" android:layout_marginBottom="8dp"/>
+                <!-- Champs legacy conservés invisibles pour compatibilité code -->
+                <EditText android:id="@+id/et_hys_host" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="gone"/>
+                <EditText android:id="@+id/et_hys_auth" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="gone"/>
+                <EditText android:id="@+id/et_hys_upload" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="gone"/>
+                <EditText android:id="@+id/et_hys_download" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="gone"/>
+                <EditText android:id="@+id/et_hys_obfs" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="gone"/>
+                <EditText android:id="@+id/et_hys_port_hopping" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="gone"/>
+            </LinearLayout>
+            <!-- ZIVPN Panel -->
+            <include layout="@layout/section_zivpn" />
+            <Button android:id="@+id/btn_save_config" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="SAVE CONFIG" android:backgroundTint="#2196F3" android:textColor="#FFFFFF" android:layout_marginTop="24dp"/>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

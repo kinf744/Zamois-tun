@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">KIGHMU VPN</string>
+
+    <!-- Connection -->
+    <string name="connect">CONNECT</string>
+    <string name="disconnect">DISCONNECT</string>
+    <string name="cancel">CANCEL</string>
+
+    <!-- Status -->
+    <string name="status_connected">CONNECTED</string>
+    <string name="status_connecting">CONNECTING...</string>
+    <string name="status_reconnecting">RECONNECTING...</string>
+    <string name="status_disconnected">DISCONNECTED</string>
+    <string name="status_error">CONNECTION ERROR</string>
+
+    <!-- Tunnel Modes -->
+    <string name="mode_slowdns">SlowDNS</string>
+    <string name="mode_http_proxy">HTTP Proxy + Payload</string>
+    <string name="mode_ssh_ws">SSH WebSocket</string>
+    <string name="mode_ssh_ssl">SSH SSL/TLS</string>
+    <string name="mode_xray">V2Ray / Xray</string>
+    <string name="mode_xray_slowdns">V2Ray + SlowDNS</string>
+    <string name="mode_hysteria">Hysteria UDP</string>
+
+    <!-- Config -->
+    <string name="config_name">Config Name</string>
+    <string name="save_config">Save Configuration</string>
+    <string name="import_config">Import Config</string>
+    <string name="export_config">Export Config</string>
+
+    <!-- SSH -->
+    <string name="ssh_host">SSH Host / IP</string>
+    <string name="ssh_port">SSH Port</string>
+    <string name="ssh_username">Username</string>
+    <string name="ssh_password">Password</string>
+    <string name="ssh_private_key">Private Key (PEM)</string>
+    <string name="ssh_use_key">Use Private Key</string>
+
+    <!-- SlowDNS -->
+    <string name="dns_server">DNS Server</string>
+    <string name="dns_port">DNS Port</string>
+    <string name="nameserver">Nameserver</string>
+    <string name="public_key">Public Key</string>
+    <string name="dns_payload">DNS Payload</string>
+    <string name="use_udp">Use UDP</string>
+
+    <!-- HTTP Proxy -->
+    <string name="proxy_host">Proxy Host</string>
+    <string name="proxy_port">Proxy Port</string>
+    <string name="custom_payload">Custom HTTP Payload</string>
+    <string name="custom_headers">Custom Headers (key: value per line)</string>
+
+    <!-- WebSocket -->
+    <string name="ws_host">WebSocket Host</string>
+    <string name="ws_port">WebSocket Port</string>
+    <string name="ws_path">WebSocket Path</string>
+    <string name="use_wss">Use WSS (Secure)</string>
+
+    <!-- SSL/TLS -->
+    <string name="ssl_host">SSL Host</string>
+    <string name="ssl_port">SSL Port</string>
+    <string name="sni">SNI (Server Name Indication)</string>
+    <string name="allow_insecure">Allow Insecure SSL</string>
+
+    <!-- Xray -->
+    <string name="xray_json_config">Xray JSON Configuration</string>
+    <string name="format_json">Format</string>
+    <string name="validate_json">Validate</string>
+    <string name="paste_json">Paste</string>
+    <string name="copy_json">Copy</string>
+
+    <!-- Hysteria -->
+    <string name="hysteria_server">Server Address</string>
+    <string name="hysteria_port">Server Port</string>
+    <string name="auth_password">Auth Password</string>
+    <string name="upload_speed">Upload Speed (Mbps)</string>
+    <string name="download_speed">Download Speed (Mbps)</string>
+    <string name="obfs_password">Obfuscation Password</string>
+
+    <!-- Logs -->
+    <string name="clear_logs">Clear</string>
+    <string name="share_logs">Share</string>
+    <string name="auto_scroll">Auto Scroll</string>
+
+    <!-- Settings -->
+    <string name="settings">Settings</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="kill_switch">Kill Switch</string>
+    <string name="kill_switch_desc">Block internet if VPN disconnects</string>
+    <string name="auto_reconnect">Auto Reconnect</string>
+    <string name="dns_leak_protection">DNS Leak Protection</string>
+    <string name="about">About</string>
+    <string name="version">Version</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_config">Config</string>
+    <string name="nav_logs">Logs</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Errors -->
+    <string name="err_config_expired">This configuration has expired</string>
+    <string name="err_wrong_device">Config locked to a different device</string>
+    <string name="err_invalid_config">Invalid configuration file</string>
+    <string name="err_vpn_permission">VPN permission required</string>
+</resources>

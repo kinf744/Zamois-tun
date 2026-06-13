@@ -1,0 +1,46 @@
+name: Build hev-socks5-tunnel multi-SOCKS armeabi-v7a
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'patch_hev.py'
+      - '.github/workflows/build_hev_multi.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Android NDK
+        run: |
+          wget -q https://dl.google.com/android/repository/android-ndk-r26d-linux.zip
+          unzip -q android-ndk-r26d-linux.zip
+          echo "NDK_HOME=$PWD/android-ndk-r26d" >> $GITHUB_ENV
+
+      - name: Clone hev-socks5-tunnel
+        run: git clone --depth=1 --recurse-submodules https://github.com/heiher/hev-socks5-tunnel.git
+
+      - name: Patch multi-SOCKS
+        run: python3 patch_hev.py
+
+      - name: Build with ndk-build
+        run: |
+          cd hev-socks5-tunnel
+          $NDK_HOME/ndk-build \
+            NDK_PROJECT_PATH=. \
+            APP_BUILD_SCRIPT=Android.mk \
+            APP_ABI=armeabi-v7a \
+            APP_PLATFORM=android-21 \
+            APP_CFLAGS="-DANDROID -DPKGNAME=hev/htproxy -DCLSNAME=TProxyService" \
+            NDK_OUT=build/obj \
+            NDK_LIBS_OUT=build/libs
+          ls -lh build/libs/armeabi-v7a/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hev-multi-socks-armeabi-v7a
+          path: hev-socks5-tunnel/build/libs/armeabi-v7a/

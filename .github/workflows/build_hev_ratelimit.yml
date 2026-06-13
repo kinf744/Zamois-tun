@@ -1,0 +1,76 @@
+name: Build hev-socks5-tunnel with rate limiting
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'patch_hev_ratelimit.py'
+      - '.github/workflows/build_hev_ratelimit.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Android NDK
+        run: |
+          wget -q https://dl.google.com/android/repository/android-ndk-r26d-linux.zip
+          unzip -q android-ndk-r26d-linux.zip
+          echo "NDK_HOME=$PWD/android-ndk-r26d" >> $GITHUB_ENV
+
+      - name: Clone hev-socks5-tunnel
+        run: git clone --depth=1 --recurse-submodules https://github.com/heiher/hev-socks5-tunnel.git
+
+      - name: Apply rate limiting patch
+        run: python3 patch_hev_ratelimit.py
+
+      - name: Build with ndk-build
+        run: |
+          cd hev-socks5-tunnel
+          $NDK_HOME/ndk-build \
+            NDK_PROJECT_PATH=. \
+            APP_BUILD_SCRIPT=Android.mk \
+            APP_ABI="armeabi-v7a arm64-v8a" \
+            APP_PLATFORM=android-21 \
+            APP_CFLAGS="-DANDROID -DPKGNAME=hev/htproxy -DCLSNAME=TProxyService" \
+            NDK_OUT=build/obj \
+            NDK_LIBS_OUT=build/libs
+          ls -lh build/libs/armeabi-v7a/
+          ls -lh build/libs/arm64-v8a/
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: hev-ratelimit-${{ github.run_number }}
+          release_name: "hev-socks5-tunnel rate limiting #${{ github.run_number }}"
+          body: "hev-socks5-tunnel avec rate limiting global token bucket - armeabi-v7a + arm64-v8a"
+          draft: false
+          prerelease: false
+
+      - name: Upload armeabi-v7a to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: hev-socks5-tunnel/build/libs/armeabi-v7a/libhev-socks5-tunnel.so
+          asset_name: libhev-socks5-tunnel-armeabi-v7a.so
+          asset_content_type: application/octet-stream
+
+      - name: Upload arm64-v8a to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: hev-socks5-tunnel/build/libs/arm64-v8a/libhev-socks5-tunnel.so
+          asset_name: libhev-socks5-tunnel-arm64-v8a.so
+          asset_content_type: application/octet-stream

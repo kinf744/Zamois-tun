@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#0D1117">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#161B22"
+        android:titleTextColor="#FFFFFF"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:id="@+id/form_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- PROFILE -->
+            <TextView android:id="@+id/label_profile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="PROFILE"
+                android:textColor="#4FC3F7"
+                android:textSize="12sp"
+                android:paddingTop="8dp"/>
+            <EditText android:id="@+id/et_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Profile Name"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#888888"
+                android:background="#1A1F2E"
+                android:padding="12dp"
+                android:layout_marginTop="4dp"/>
+
+            <!-- SSH -->
+            <TextView android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="SSH CONFIGURATION"
+                android:textColor="#4FC3F7"
+                android:textSize="12sp"
+                android:paddingTop="16dp"/>
+            <EditText android:id="@+id/et_ssh_host"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="SSH Host"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#888888"
+                android:background="#1A1F2E"
+                android:padding="12dp"
+                android:layout_marginTop="4dp"/>
+            <EditText android:id="@+id/et_ssh_port"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="SSH Port"
+                android:inputType="number"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#888888"
+                android:background="#1A1F2E"
+                android:padding="12dp"
+                android:layout_marginTop="4dp"/>
+            <EditText android:id="@+id/et_ssh_user"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Username"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#888888"
+                android:background="#1A1F2E"
+                android:padding="12dp"
+                android:layout_marginTop="4dp"/>
+            <EditText android:id="@+id/et_ssh_pass"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Password"
+                android:inputType="textVisiblePassword"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#888888"
+                android:background="#1A1F2E"
+                android:padding="12dp"
+                android:layout_marginTop="4dp"/>
+
+            <!-- SLOWDNS -->
+            <TextView android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="SLOWDNS CONFIGURATION"
+                android:textColor="#4FC3F7"
+                android:textSize="12sp"
+                android:paddingTop="16dp"/>
+            <EditText android:id="@+id/et_dns"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="DNS Server"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#888888"
+                android:background="#1A1F2E"
+                android:padding="12dp"
+                android:layout_marginTop="4dp"/>
+            <EditText android:id="@+id/et_ns"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Nameserver"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#888888"
+                android:background="#1A1F2E"
+                android:padding="12dp"
+                android:layout_marginTop="4dp"/>
+            <EditText android:id="@+id/et_pubkey"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Public Key"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#888888"
+                android:background="#1A1F2E"
+                android:padding="12dp"
+                android:layout_marginTop="4dp"/>
+
+            <!-- HTTP CONNECT -->
+            <TextView android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="HTTP CONNECT PROXY"
+                android:textColor="#4FC3F7"
+                android:textSize="12sp"
+                android:paddingTop="16dp"/>
+            <TextView android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Transport stable (comme SSH Custom). Laissez vide pour SlowDNS."
+                android:textColor="#888888"
+                android:textSize="11sp"
+                android:paddingBottom="4dp"/>
+            <EditText android:id="@+id/et_proxy_host"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Proxy Host (ex: 127.0.0.1)"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#888888"
+                android:background="#1A1F2E"
+                android:padding="12dp"
+                android:layout_marginTop="4dp"/>
+            <EditText android:id="@+id/et_proxy_port"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Proxy Port (ex: 22)"
+                android:inputType="number"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#888888"
+                android:background="#1A1F2E"
+                android:padding="12dp"
+                android:layout_marginTop="4dp"/>
+            <EditText android:id="@+id/et_payload"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Payload (optionnel)"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#888888"
+                android:background="#1A1F2E"
+                android:padding="12dp"
+                android:layout_marginTop="4dp"/>
+
+            <!-- TUNNELS -->
+            <TextView android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="TUNNELS PARALLELES"
+                android:textColor="#4FC3F7"
+                android:textSize="12sp"
+                android:paddingTop="16dp"/>
+            <TextView android:id="@+id/tv_tunnel_count"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Flux simultanes : 1"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:paddingTop="8dp"/>
+            <SeekBar android:id="@+id/seek_tunnel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="3"
+                android:layout_marginTop="4dp"/>
+            <TextView android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="1 flux = stable  |  2-3 flux = debit x N  |  4 flux = max"
+                android:textColor="#888888"
+                android:textSize="11sp"
+                android:paddingBottom="16dp"/>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="#161B22"
+        android:padding="12dp">
+        <Button android:id="@+id/btn_cancel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Annuler"
+            android:layout_marginEnd="8dp"/>
+        <Button android:id="@+id/btn_save"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Sauvegarder"
+            android:backgroundTint="#4FC3F7"/>
+    </LinearLayout>
+
+</LinearLayout>

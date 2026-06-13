@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_home"
+        android:icon="@drawable/ic_vpn_key"
+        android:title="@string/nav_home" />
+    <item
+        android:id="@+id/nav_config"
+        android:icon="@drawable/ic_settings_input"
+        android:title="@string/nav_config" />
+    <item
+        android:id="@+id/nav_logs"
+        android:icon="@drawable/ic_terminal"
+        android:title="@string/nav_logs" />
+    <item
+        android:id="@+id/nav_settings"
+        android:icon="@drawable/ic_settings"
+        android:title="@string/nav_settings" />
+</menu>

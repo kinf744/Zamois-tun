@@ -1,0 +1,120 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+    id 'kotlin-kapt'
+    // id 'com.google.gms.google-services' // Google Services plugin
+}
+
+android {
+    signingConfigs {
+        release {
+            storeFile rootProject.file("kighmu.keystore")
+            storePassword "KighmuStore2024!"
+            keyAlias "kighmu_key"
+            keyPassword "KighmuStore2024!"
+            storeType "PKCS12"
+        }
+    }
+    namespace 'com.kighmu.vpn'
+    compileSdk 34
+
+    defaultConfig {
+        externalNativeBuild {
+            cmake {
+                cppFlags "-O2 -std=c++17"
+            }
+        }
+        ndk {
+            abiFilters "arm64-v8a", "armeabi-v7a"
+        }
+        applicationId "com.kighmu.vpn"
+        minSdk 21
+        targetSdk 34
+        versionCode 2
+        versionName "1.0.1"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+            version "3.22.1"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+        debug {
+            minifyEnabled false
+            debuggable true
+        }
+    }
+
+    buildFeatures {
+        buildConfig true
+        viewBinding true
+        dataBinding true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging true
+        }
+    }
+}
+
+configurations.all {
+    exclude group: 'com.google.crypto.tink', module: 'tink-android'
+}
+
+dependencies {
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.11.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.7.0'
+    implementation 'androidx.lifecycle:lifecycle-service:2.7.0'
+    implementation 'androidx.fragment:fragment-ktx:1.6.2'
+    implementation 'androidx.viewpager2:viewpager2:1.0.0'
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.7.6'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.7.6'
+    implementation 'androidx.room:room-runtime:2.6.1'
+    implementation 'androidx.room:room-ktx:2.6.1'
+    kapt 'androidx.room:room-compiler:2.6.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3'
+    implementation 'com.google.code.gson:gson:2.10.1'
+    // trilead-ssh2 identique SSH Custom
+    implementation('org.connectbot:sshlib:2.2.21') {
+        exclude group: 'com.google.crypto.tink'
+    }
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'dnsjava:dnsjava:3.5.3'
+    implementation('androidx.security:security-crypto:1.1.0-alpha06') {
+        exclude group: 'com.google.crypto.tink'
+    }
+    implementation 'org.bouncycastle:bcprov-jdk15to18:1.77'
+    implementation 'androidx.work:work-runtime-ktx:2.9.0'
+    implementation 'androidx.datastore:datastore-preferences:1.0.0'
+    testImplementation 'junit:junit:4.13.2'
+
+    // Firebase (Supprimé)
+    // implementation platform('com.google.firebase:firebase-bom:32.7.4')
+    // implementation 'com.google.firebase:firebase-storage-ktx'
+}

@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#0D1117">
+
+    <!-- Toolbar -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar_license"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="#161B22"
+        android:elevation="4dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Licence d'utilisation"
+            android:textColor="#4FC3F7"
+            android:textSize="17sp"
+            android:textStyle="bold"/>
+    </androidx.appcompat.widget.Toolbar>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="0dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- Logo / Titre -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="KIGHMU VPN"
+                android:textColor="#4FC3F7"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:letterSpacing="0.15"
+                android:layout_marginBottom="4dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Contrat de Licence d'Utilisation Finale (CLUF)"
+                android:textColor="#888888"
+                android:textSize="13sp"
+                android:gravity="center"
+                android:layout_marginBottom="24dp"/>
+
+            <!-- Séparateur -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#1E3A5F"
+                android:layout_marginBottom="20dp"/>
+
+            <!-- Section 1 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ARTICLE 1 — DÉFINITIONS"
+                android:textColor="#4FC3F7"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textAllCaps="true"
+                android:letterSpacing="0.08"
+                android:layout_marginBottom="8dp"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Dans le présent Contrat de Licence d'Utilisation Finale (ci-après « le Contrat »), les termes suivants ont la signification qui leur est attribuée ci-dessous :\n\n• « Application » désigne le logiciel KIGHMU VPN, incluant l'ensemble de ses composants, bibliothèques natives, fichiers de configuration, interfaces graphiques et toute mise à jour ultérieure.\n\n• « Éditeur » désigne le développeur et propriétaire exclusif de l'Application, opérant sous la marque KIGHMU.\n\n• « Utilisateur » désigne toute personne physique ou morale qui installe, copie, télécharge, accède ou utilise l'Application.\n\n• « Configuration » désigne tout fichier au format .kighmu généré par l'Application, contenant des paramètres de connexion VPN chiffrés."
+                android:textColor="#CCCCCC"
+                android:textSize="13sp"
+                android:lineSpacingExtra="4dp"
+                android:layout_marginBottom="20dp"/>
+
+            <!-- Section 2 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ARTICLE 2 — OCTROI DE LICENCE"
+                android:textColor="#4FC3F7"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textAllCaps="true"
+                android:letterSpacing="0.08"
+                android:layout_marginBottom="8dp"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="L'Éditeur accorde à l'Utilisateur une licence personnelle, non exclusive, non transférable et révocable lui permettant d'installer et d'utiliser l'Application sur un nombre limité d'appareils lui appartenant, conformément aux conditions du présent Contrat.\n\nCette licence est accordée à titre gratuit pour un usage personnel et non commercial. Toute utilisation commerciale, redistribution ou sous-licence est strictement interdite sans l'accord écrit préalable de l'Éditeur."
+                android:textColor="#CCCCCC"
+                android:textSize="13sp"
+                android:lineSpacingExtra="4dp"
+                android:layout_marginBottom="20dp"/>
+
+            <!-- Section 3 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ARTICLE 3 — RESTRICTIONS D'UTILISATION"
+                android:textColor="#4FC3F7"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textAllCaps="true"
+                android:letterSpacing="0.08"
+                android:layout_marginBottom="8dp"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="L'Utilisateur s'engage expressément à NE PAS :\n\n(a) Décompiler, désassembler, rétroconcevoir ou tenter de dériver le code source de l'Application par quelque moyen que ce soit ;\n\n(b) Modifier, adapter, traduire ou créer des œuvres dérivées basées sur l'Application ;\n\n(c) Supprimer, altérer ou dissimuler tout avis de propriété intellectuelle, marque commerciale ou mention de droit d'auteur présent dans l'Application ;\n\n(d) Distribuer, vendre, louer, prêter, sous-licencier ou transférer l'Application à des tiers ;\n\n(e) Utiliser l'Application à des fins illégales, frauduleuses ou portant atteinte aux droits de tiers ;\n\n(f) Contourner les mécanismes de sécurité, de chiffrement ou d'authentification intégrés à l'Application ;\n\n(g) Utiliser l'Application pour conduire des activités de piratage informatique, d'espionnage ou de violation de la vie privée d'autrui."
+                android:textColor="#CCCCCC"
+                android:textSize="13sp"
+                android:lineSpacingExtra="4dp"
+                android:layout_marginBottom="20dp"/>
+
+            <!-- Section 4 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ARTICLE 4 — PROPRIÉTÉ INTELLECTUELLE"
+                android:textColor="#4FC3F7"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textAllCaps="true"
+                android:letterSpacing="0.08"
+                android:layout_marginBottom="8dp"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="L'Application, y compris mais sans s'y limiter, son code source, son code objet, ses algorithmes, ses interfaces, sa conception visuelle, ses bibliothèques natives (libdnstt.so, libhysteria.so, libpdnsd.so, libtun2socks_ssc.so) et sa documentation, constitue une œuvre de l'esprit protégée par les lois relatives au droit d'auteur et aux droits de propriété intellectuelle applicables.\n\nL'Éditeur conserve l'intégralité des droits, titres et intérêts relatifs à l'Application. Le présent Contrat ne confère à l'Utilisateur aucun droit de propriété sur l'Application, mais uniquement un droit d'utilisation limité tel que défini à l'Article 2."
+                android:textColor="#CCCCCC"
+                android:textSize="13sp"
+                android:lineSpacingExtra="4dp"
+                android:layout_marginBottom="20dp"/>
+
+            <!-- Section 5 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ARTICLE 5 — PROTECTION CONTRE LA COPIE ILLÉGALE"
+                android:textColor="#4FC3F7"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textAllCaps="true"
+                android:letterSpacing="0.08"
+                android:layout_marginBottom="8dp"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="L'Application intègre des mécanismes techniques de protection destinés à prévenir la copie non autorisée, la décompilation et la rétro-ingénierie. Ces mesures de protection technique sont protégées par la législation applicable sur le droit d'auteur numérique.\n\nToute tentative de contournement, neutralisation ou suppression de ces protections techniques constitue une violation grave du présent Contrat et peut engager la responsabilité civile et pénale de son auteur, conformément aux lois en vigueur dans la juridiction compétente."
+                android:textColor="#CCCCCC"
+                android:textSize="13sp"
+                android:lineSpacingExtra="4dp"
+                android:layout_marginBottom="20dp"/>
+
+            <!-- Section 6 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ARTICLE 6 — EXCLUSION DE GARANTIE"
+                android:textColor="#4FC3F7"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textAllCaps="true"
+                android:letterSpacing="0.08"
+                android:layout_marginBottom="8dp"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="L'Application est fournie « EN L'ÉTAT », sans garantie d'aucune sorte, expresse ou implicite, y compris, sans limitation, les garanties implicites de qualité marchande, d'adéquation à un usage particulier et d'absence de contrefaçon.\n\nL'Éditeur ne garantit pas que l'Application fonctionnera de manière ininterrompue, sans erreur, ni que les défauts seront corrigés. L'Utilisateur assume l'entière responsabilité des risques liés à la qualité et aux performances de l'Application."
+                android:textColor="#CCCCCC"
+                android:textSize="13sp"
+                android:lineSpacingExtra="4dp"
+                android:layout_marginBottom="20dp"/>
+
+            <!-- Section 7 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ARTICLE 7 — LIMITATION DE RESPONSABILITÉ"
+                android:textColor="#4FC3F7"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textAllCaps="true"
+                android:letterSpacing="0.08"
+                android:layout_marginBottom="8dp"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="En aucun cas l'Éditeur ne pourra être tenu responsable de dommages indirects, accessoires, spéciaux, consécutifs ou punitifs, y compris, sans limitation, la perte de profits, la perte de données, l'interruption d'activité ou tout autre préjudice commercial, résultant de l'utilisation ou de l'impossibilité d'utiliser l'Application, même si l'Éditeur a été informé de la possibilité de tels dommages.\n\nL'Utilisateur est seul responsable de l'usage qu'il fait de l'Application et de la conformité de cet usage avec la législation applicable dans sa juridiction."
+                android:textColor="#CCCCCC"
+                android:textSize="13sp"
+                android:lineSpacingExtra="4dp"
+                android:layout_marginBottom="20dp"/>
+
+            <!-- Section 8 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ARTICLE 8 — CONFIDENTIALITÉ ET DONNÉES"
+                android:textColor="#4FC3F7"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textAllCaps="true"
+                android:letterSpacing="0.08"
+                android:layout_marginBottom="8dp"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="L'Application peut collecter certaines données techniques anonymisées (identifiant matériel, version du système d'exploitation, statistiques d'utilisation) dans le seul but d'améliorer la qualité du service et de prévenir les utilisations frauduleuses.\n\nL'Éditeur s'engage à ne pas vendre, louer ou divulguer ces données à des tiers sans le consentement préalable de l'Utilisateur, sauf obligation légale. Les données de connexion VPN ne sont ni enregistrées ni transmises à des tiers."
+                android:textColor="#CCCCCC"
+                android:textSize="13sp"
+                android:lineSpacingExtra="4dp"
+                android:layout_marginBottom="20dp"/>
+
+            <!-- Section 9 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ARTICLE 9 — RÉSILIATION"
+                android:textColor="#4FC3F7"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textAllCaps="true"
+                android:letterSpacing="0.08"
+                android:layout_marginBottom="8dp"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Le présent Contrat prend effet dès l'installation ou l'utilisation de l'Application et demeure en vigueur jusqu'à sa résiliation.\n\nL'Éditeur se réserve le droit de résilier immédiatement le présent Contrat en cas de violation de l'une quelconque de ses dispositions par l'Utilisateur. En cas de résiliation, l'Utilisateur doit cesser toute utilisation de l'Application et en supprimer toutes les copies en sa possession."
+                android:textColor="#CCCCCC"
+                android:textSize="13sp"
+                android:lineSpacingExtra="4dp"
+                android:layout_marginBottom="20dp"/>
+
+            <!-- Section 10 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ARTICLE 10 — LOI APPLICABLE ET JURIDICTION"
+                android:textColor="#4FC3F7"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textAllCaps="true"
+                android:letterSpacing="0.08"
+                android:layout_marginBottom="8dp"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Le présent Contrat est régi et interprété conformément aux lois en vigueur dans la juridiction de l'Éditeur. Tout litige relatif à l'interprétation, l'exécution ou la résiliation du présent Contrat sera soumis à la compétence exclusive des tribunaux compétents de ladite juridiction.\n\nSi une disposition du présent Contrat est jugée invalide ou inapplicable, les autres dispositions demeurent pleinement en vigueur."
+                android:textColor="#CCCCCC"
+                android:textSize="13sp"
+                android:lineSpacingExtra="4dp"
+                android:layout_marginBottom="20dp"/>
+
+            <!-- Section 11 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ARTICLE 11 — INTÉGRALITÉ DE L'ACCORD"
+                android:textColor="#4FC3F7"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textAllCaps="true"
+                android:letterSpacing="0.08"
+                android:layout_marginBottom="8dp"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Le présent Contrat constitue l'intégralité de l'accord entre l'Utilisateur et l'Éditeur concernant l'Application et remplace tous les accords, représentations et garanties antérieurs, écrits ou oraux, relatifs à son objet.\n\nL'Éditeur se réserve le droit de modifier les termes du présent Contrat à tout moment. Les modifications prendront effet dès leur publication dans l'Application. L'utilisation continue de l'Application après publication des modifications vaut acceptation des nouveaux termes."
+                android:textColor="#CCCCCC"
+                android:textSize="13sp"
+                android:lineSpacingExtra="4dp"
+                android:layout_marginBottom="24dp"/>
+
+            <!-- Séparateur final -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#1E3A5F"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- Copyright -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/tv_license_version"
+                android:text="© 2024 KIGHMU VPN — Tous droits réservés"
+                android:textColor="#555555"
+                android:textSize="11sp"
+                android:gravity="center"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Version 1.0 — Dernière mise à jour : 2024"
+                android:textColor="#444444"
+                android:textSize="10sp"
+                android:gravity="center"
+                android:layout_marginBottom="24dp"/>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Bouton Accepter -->
+    <Button
+        android:id="@+id/btn_accept_license"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:text="J'AI LU ET J'ACCEPTE CETTE LICENCE"
+        android:backgroundTint="#1565C0"
+        android:textColor="#FFFFFF"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:layout_margin="16dp"/>
+
+</LinearLayout>

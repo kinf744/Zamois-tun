@@ -1,0 +1,20 @@
+[33mef06c22[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m fix: générer xrayJsonConfig et tous les champs V2ray+DNS à la sauvegarde du profil
+[33m3444eb3[m fix: ajouter vpnService à HevTun2Socks.startMulti call
+[33md3d14ef[m fix: ajouter vpnService param à MultiXraySlowDnsEngine et corriger XrayEngine call
+[33mbc36870[m git log --oneline -3fix: XrayEngine init avec 3 paramètres (dnsttProxyPort=0)
+[33m2d74d84[m git log --oneline -3fix: ProGuard dontwarn pour dnsjava R8
+[33m4a364e3[m fix: resolve Config tab crash with try-catch and tab index fix
+[33ma9024d5[m fix: corriger les erreurs R8 pour lombok et slf4j (dnsjava)
+[33m78fb8a7[m fix: corriger les erreurs R8 résiduelles pour dnsjava
+[33m875e7fb[m fix: corriger les erreurs de build R8 et keystore
+[33m4b3322f[m fix: supprimer Firebase/GMS et implémenter Cloud Config via Pastebin (Hastebin)
+[33mc1b1b76[m feat: obfuscation R8, expiry heure/min, page licence professionnelle
+[33mdda8517[m fix: corriger l'importation de suspendCancellableCoroutine pour Firebase
+[33m7ff1e33[m chore: intégration du fichier google-services.json pour Firebase
+[33mf08223e[m feat: migration définitive vers Firebase Storage
+[33me4ebd8d[m revert: restauration de la logique GitHub Cloud avec le nouveau token
+[33md8100dd[m feat: migration de l'infrastructure Cloud vers Firebase Storage
+[33m058b4fd[m fix: résolution de l'erreur 401 Cloud et fiabilisation du Hardware ID
+[33mce75752[m feat: ajout du support pour l'architecture arm64-v8a
+[33mea2e62e[m fix: correction d'une balise LinearLayout non fermée dans activity_export.xml
+[33m6e48aba[m fix: suppression ehi.link, nouvel UI post-export cloud et correction des packages

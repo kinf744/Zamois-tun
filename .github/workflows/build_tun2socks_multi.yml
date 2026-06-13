@@ -1,0 +1,70 @@
+name: Build tun2socks multi-SOCKS armeabi-v7a
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get install -y cmake ninja-build
+
+      - name: Setup Android NDK
+        run: |
+          wget -q https://dl.google.com/android/repository/android-ndk-r26d-linux.zip
+          unzip -q android-ndk-r26d-linux.zip
+          echo "NDK_HOME=$PWD/android-ndk-r26d" >> $GITHUB_ENV
+
+      - name: Clone BadVPN
+        run: git clone --depth=1 https://github.com/ambrop72/badvpn.git
+
+      - name: Patch multi-SOCKS round-robin
+        run: |
+          cd badvpn
+          python3 << 'PYEOF'
+          content = open('tun2socks/tun2socks.c').read()
+          content = content.replace('#include <system/BAddr.h>', '#include <system/BAddr.h>\n#include <stdatomic.h>\n#define MAX_SOCKS_SERVERS 8')
+          content = content.replace('BAddr socks_server_addr;', 'BAddr socks_server_addrs[MAX_SOCKS_SERVERS];\nint socks_server_count = 0;\nstatic atomic_int socks_round_robin = 0;')
+          content = content.replace('    char *socks_server_addr;', '    char *socks_server_addr[MAX_SOCKS_SERVERS];\n    int socks_server_addr_count;')
+          content = content.replace('    options.socks_server_addr = NULL;', '    options.socks_server_addr_count = 0;\n    for (int _i=0; _i<MAX_SOCKS_SERVERS; _i++) options.socks_server_addr[_i] = NULL;')
+          content = content.replace('            options.socks_server_addr = argv[i + 1];', '            if (options.socks_server_addr_count < MAX_SOCKS_SERVERS) { options.socks_server_addr[options.socks_server_addr_count++] = argv[i + 1]; }')
+          content = content.replace('    if (!options.socks_server_addr) {', '    if (options.socks_server_addr_count == 0) {')
+          content = content.replace('    if (!BAddr_Parse2(&socks_server_addr, options.socks_server_addr, NULL, 0, 0)) {', '    socks_server_count = options.socks_server_addr_count;\n    for (int _i=0; _i<socks_server_count; _i++) { if (!BAddr_Parse2(&socks_server_addrs[_i], options.socks_server_addr[_i], NULL, 0, 0)) { BLog(BLOG_ERROR, "parse failed"); return 0; } }\n    if (0) {')
+          content = content.replace('        socks_server_addr, socks_auth_info, socks_num_auth_info, addr, /*udp=*/false,', '        socks_server_addrs[atomic_fetch_add(&socks_round_robin, 1) % socks_server_count], socks_auth_info, socks_num_auth_info, addr, /*udp=*/false,')
+          content = content.replace('options.udpgw_connection_buffer_size, UDPGW_KEEPALIVE_TIME, socks_server_addr,', 'options.udpgw_connection_buffer_size, UDPGW_KEEPALIVE_TIME, socks_server_addrs[0],')
+          content = content.replace('SOCKS_UDP_SEND_BUFFER_PACKETS, UDPGW_KEEPALIVE_TIME, socks_server_addr,', 'SOCKS_UDP_SEND_BUFFER_PACKETS, UDPGW_KEEPALIVE_TIME, socks_server_addrs[0],')
+          open('tun2socks/tun2socks.c', 'w').write(content)
+          print("Patch OK!")
+          PYEOF
+
+      - name: Build armeabi-v7a
+        run: |
+          cd badvpn
+          mkdir build && cd build
+          cmake .. \
+            -DCMAKE_TOOLCHAIN_FILE=$NDK_HOME/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI=armeabi-v7a \
+            -DANDROID_PLATFORM=android-21 \
+            -DANDROID_STL=c++_static \
+            -DBUILD_NOTHING_BY_DEFAULT=1 \
+            -DBUILD_TUN2SOCKS=1 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_FLAGS="-DBADVPN_USE_SELFPIPE -DBADVPN_LINUX"
+          make -j$(nproc)
+          echo "=== Contenu tun2socks/ ==="
+          find tun2socks/ -type f
+          find . -name "tun2socks" -o -name "tun2socks.so" | head -5
+          cp tun2socks/tun2socks ../../libtun2socks.so || \
+          cp tun2socks/libtun2socks.so ../../libtun2socks.so || \
+          find . -name "tun2socks*" -exec cp {} ../../libtun2socks.so \;
+          ls -lh ../../libtun2socks.so
+
+      - name: Upload artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: libtun2socks-multi-armeabi-v7a
+          path: libtun2socks.so

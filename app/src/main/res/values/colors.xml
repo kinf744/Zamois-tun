@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark theme background -->
+    <color name="background_dark">#0D1117</color>
+    <color name="surface_dark">#161B22</color>
+    <color name="surface_dark_elevated">#1F2937</color>
+    <color name="surface_card">#21262D</color>
+
+    <!-- Text -->
+    <color name="text_primary">#E6EDF3</color>
+    <color name="text_secondary">#8B949E</color>
+    <color name="text_hint">#484F58</color>
+
+    <!-- Accent -->
+    <color name="accent_blue">#1F6FEB</color>
+    <color name="accent_blue_light">#388BFD</color>
+    <color name="accent_green">#3FB950</color>
+    <color name="accent_purple">#8957E5</color>
+    <color name="accent_orange">#DB6D28</color>
+
+    <!-- Status -->
+    <color name="success_green">#3FB950</color>
+    <color name="error_red">#F85149</color>
+    <color name="warning_orange">#D29922</color>
+    <color name="info_blue">#388BFD</color>
+
+    <!-- Navigation -->
+    <color name="nav_active">#1F6FEB</color>
+    <color name="nav_inactive">#8B949E</color>
+
+    <!-- Primary/App compat -->
+    <color name="colorPrimary">#1F6FEB</color>
+    <color name="colorPrimaryDark">#0D1117</color>
+    <color name="colorAccent">#388BFD</color>
+</resources>

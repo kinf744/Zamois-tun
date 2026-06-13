@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Allow cleartext for VPN tunnel operations (SSH, DNS etc.) -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- Strict TLS for app's own API calls -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">api.kighmu.com</domain>
+    </domain-config>
+</network-security-config>

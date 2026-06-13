@@ -1,0 +1,55 @@
+### Android ###
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cds
+**/.cxx
+
+### Keystores & Credentials (NEVER commit) ###
+*.keystore
+*.jks
+keystore_credentials.txt
+signing.properties
+
+### Build outputs ###
+app/build/
+dist/
+
+### Go ###
+vendor/
+go.sum
+
+### Binaries (compiled separately) ###
+# app/src/main/assets/xray/*/xray
+# app/src/main/assets/hysteria/*/hysteria2
+
+### IDE ###
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+### OS ###
+.DS_Store
+Thumbs.db
+Get
+Keystore
+Run
+Task
+Xray-core/
+libxray_artifact.zip
+libxray_extracted/
+libhysteria_artifact.zip
+libhysteria_extracted/
+*.zip
+hysteria_new/
+libuz.so
+*.000
+*.upx
+-H

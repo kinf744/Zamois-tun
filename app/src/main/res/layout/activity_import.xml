@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#0D1117"
+    android:padding="24dp">
+
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="IMPORTER UNE CONFIG" android:textColor="#4FC3F7"
+        android:textSize="18sp" android:textStyle="bold" android:layout_marginBottom="24dp"/>
+
+    <!-- Import fichier -->
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="DEPUIS UN FICHIER .kighmu" android:textColor="#888888"
+        android:textSize="12sp" android:textAllCaps="true" android:layout_marginBottom="8dp"/>
+
+    <Button android:id="@+id/btn_import_file"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="📂 Sélectionner un fichier"
+        android:backgroundTint="#1565C0" android:textColor="#FFFFFF"
+        android:layout_marginBottom="24dp"/>
+
+    <!-- Import cloud -->
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="DEPUIS UN CODE CLOUD" android:textColor="#888888"
+        android:textSize="12sp" android:textAllCaps="true" android:layout_marginBottom="8dp"/>
+
+    <EditText android:id="@+id/et_cloud_code"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:hint="Entrez le code d'accès cloud"
+        android:textColor="#FFFFFF" android:textColorHint="#666666"
+        android:backgroundTint="#1A1F2E" android:padding="12dp"
+        android:inputType="textVisiblePassword"
+        android:layout_marginBottom="8dp"/>
+
+    <Button android:id="@+id/btn_import_cloud"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="☁️ Importer depuis le cloud"
+        android:backgroundTint="#00796B" android:textColor="#FFFFFF"/>
+
+</LinearLayout>
