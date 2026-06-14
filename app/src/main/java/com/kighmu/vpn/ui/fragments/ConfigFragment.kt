@@ -306,7 +306,8 @@ class ConfigFragment : Fragment() {
             val finalV2dns = v2dnsJson.ifBlank { c.v2dns.jsonConfig }
             // v2dns sera inclus dans le saveConfig final plus bas
             c.xray.copy(v2dnsJsonConfig = finalV2dns)
-        } else {
+        } else if (currentTab == 3) {
+            // Onglet V2RAY_XRAY actif: lire les champs depuis l UI
             val rgXray = view.findViewById<android.widget.RadioGroup>(R.id.rg_xray_mode)
             val activeMode = when (rgXray.checkedRadioButtonId) {
                 R.id.rb_xray_link -> "link"
@@ -330,6 +331,9 @@ class ConfigFragment : Fragment() {
                 xrayLink = rawLink.ifBlank { c.xray.xrayLink },
                 xrayLinkJson = parsedJson.ifBlank { c.xray.xrayLinkJson }
             )
+        } else {
+            // Autre onglet actif: preserver integralement la config Xray existante sans toucher
+            com.kighmu.vpn.models.XrayConfig.migrate(c.xray)
         }
         val hys = c.hysteria.copy(
             serverAddress = view.findViewById<EditText>(R.id.et_hys_host).text.toString(),
