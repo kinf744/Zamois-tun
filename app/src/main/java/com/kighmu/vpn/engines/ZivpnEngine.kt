@@ -143,16 +143,16 @@ class ZivpnEngine(
                 redirectErrorStream(true)
             }
             xrayProcess = pb.start()
-            log("Proxy Xray démarré")
+            log("Proxy Secure démarré")
             Thread {
                 try {
                     xrayProcess?.inputStream?.bufferedReader()?.forEachLine { line ->
                         if (line.contains("started") || line.contains("listening")) {
-                            log("Xray prêt")
+                            log("Secure prêt")
                         }
                     }
                     val code = xrayProcess?.waitFor() ?: -1
-                    log("Xray arrêté (code=$code)")
+                    log("Secure arrêté (code=$code)")
                 } catch (_: Exception) {}
             }.apply { isDaemon = true }.start()
             Thread.sleep(1200)
