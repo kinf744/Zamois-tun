@@ -300,6 +300,20 @@ class KighmuVpnService : VpnService() {
 
                 val localPort = try {
                     
+                // Injecter le profil V2DNS sélectionné dans la config avant démarrage
+                val v2dnsRepo = com.kighmu.vpn.profiles.V2rayDnsProfileRepository(this@KighmuVpnService)
+                val selectedV2dns = v2dnsRepo.getSelected().firstOrNull()
+                if (selectedV2dns != null && currentConfig.tunnelMode == com.kighmu.vpn.models.TunnelMode.V2RAY_XRAY) {
+                    val builtJson = buildXrayJsonFromV2dnsProfile(selectedV2dns)
+                    currentConfig = currentConfig.copy(
+                        xray = currentConfig.xray.copy(
+                            activeMode = "json",
+                            jsonConfig2 = com.kighmu.vpn.models.XrayJsonConfig(json = builtJson),
+                            jsonConfig = builtJson
+                        )
+                    )
+                    com.kighmu.vpn.utils.KighmuLogger.info(TAG, "Profil V2DNS injecté: ${selectedV2dns.profileName} transport=${selectedV2dns.transport}")
+                }
                 tunnelEngine = TunnelEngineFactory.create(currentConfig, this@KighmuVpnService, this@KighmuVpnService)
                 
                     
@@ -755,5 +769,26 @@ class KighmuVpnService : VpnService() {
     private fun updateNotification(text: String) {
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         nm.notify(NOTIFICATION_ID, buildNotification(text))
+    }
+
+    private fun buildXrayJsonFromV2dnsProfile(p: com.kighmu.vpn.profiles.V2rayDnsProfile): String {
+        val tlsSec = if (p.tls) "tls" else "none"
+        val sniVal = p.sni.ifBlank { p.serverAddress }
+        val tlsBlock = if (p.tls) """, "tlsSettings": { "serverName": "$sniVal", "fingerprint": "chrome" }""" else ""
+        val ss = when (p.transport) {
+            "ws", "websocket"    -> """{"network":"ws","security":"$tlsSec"$tlsBlock,"wsSettings":{"path":"${p.wsPath}","headers":{"Host":"${p.wsHost}"}}}"""
+            "tcp", "raw"         -> """{"network":"tcp","security":"$tlsSec"$tlsBlock,"tcpSettings":{"header":{"type":"none"}}}"""
+            "grpc"                -> """{"network":"grpc","security":"$tlsSec"$tlsBlock,"grpcSettings":{"serviceName":"${p.wsPath}"}}"""
+            "httpupgrade"         -> """{"network":"httpupgrade","security":"$tlsSec"$tlsBlock,"httpupgradeSettings":{"path":"${p.wsPath}","host":"${p.wsHost}"}}"""
+            "xhttp", "splithttp" -> """{"network":"splithttp","security":"$tlsSec"$tlsBlock,"splithttpSettings":{"path":"${p.wsPath}","host":"${p.wsHost}","mode":"stream-up"}}"""
+            else                   -> """{"network":"tcp"}"""
+        }
+        val ob = when (p.protocol) {
+            "vmess"  -> """{"protocol":"vmess","settings":{"vnext":[{"address":"${p.serverAddress}","port":${p.serverPort},"users":[{"id":"${p.uuid}","alterId":0,"security":"${p.encryption}"}]}]},"streamSettings":$ss,"mux":{"enabled":false}}"""
+            "vless"  -> """{"protocol":"vless","settings":{"vnext":[{"address":"${p.serverAddress}","port":${p.serverPort},"users":[{"id":"${p.uuid}","encryption":"none"}]}]},"streamSettings":$ss,"mux":{"enabled":false}}"""
+            "trojan" -> """{"protocol":"trojan","settings":{"servers":[{"address":"${p.serverAddress}","port":${p.serverPort},"password":"${p.uuid}"}]},"streamSettings":$ss,"mux":{"enabled":false}}"""
+            else       -> """{"protocol":"${p.protocol}","settings":{}}"""
+        }
+        return """{"log":{"loglevel":"warning"},"inbounds":[{"port":10808,"listen":"127.0.0.1","protocol":"socks","settings":{"udp":true,"auth":"noauth"},"sniffing":{"enabled":false}}],"outbounds":[$ob,{"protocol":"freedom","tag":"direct"}],"routing":{"domainStrategy":"AsIs","rules":[]}}"""
     }
 }
