@@ -30,6 +30,7 @@ enum class ConnectionStatus {
     CONNECTING,
     CONNECTED,
     RECONNECTING,
+    STOPPING,
     ERROR
 }
 

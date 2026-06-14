@@ -411,8 +411,13 @@ class KighmuVpnService : VpnService() {
         }
         vpnInterface = null
 
-        // 4. Signaler DISCONNECTED tout de suite → UI se met à jour sans attendre
-        updateStatus(ConnectionStatus.DISCONNECTED, "Disconnected")
+        // 4. Signaler STOPPING pour ZIVPN (bloque le bouton Connect pendant nettoyage)
+        //    ou DISCONNECTED immédiatement pour les autres tunnels
+        if (currentConfig.tunnelMode == com.kighmu.vpn.models.TunnelMode.ZIVPN_UDP) {
+            updateStatus(ConnectionStatus.STOPPING, "Stopping...")
+        } else {
+            updateStatus(ConnectionStatus.DISCONNECTED, "Disconnected")
+        }
 
         // 5. Retirer notification immédiatement
         try {
@@ -423,27 +428,44 @@ class KighmuVpnService : VpnService() {
             try { @Suppress("DEPRECATION") stopForeground(true) } catch (_: Exception) {}
         }
 
-        // 6. Nettoyage engine + processus natifs EN ARRIÈRE-PLAN (non bloquant)
-        //    L'utilisateur voit déjà "déconnecté" pendant ce nettoyage invisible
+        // 6. Nettoyage engine + processus natifs EN ARRIÈRE-PLAN
+        val isZivpn = currentConfig.tunnelMode == com.kighmu.vpn.models.TunnelMode.ZIVPN_UDP
         serviceScope.launch(Dispatchers.IO) {
             try {
-                // Arrêt engine avec timeout court — on ne bloque pas si engine coincé
-                withTimeoutOrNull(3000L) { engineRef?.stop() }
-
-                // Tuer processus natifs sans waitFor() → fire and forget
-                try { Runtime.getRuntime().exec(arrayOf("sh", "-c",
-                    "killall -9 libtun2socks.so xray hysteria libhysteria.so dnstt libdnstt.so libuz_core.so libload_core.so"
-                )) } catch (_: Exception) {}
-                try { Runtime.getRuntime().exec(arrayOf("sh", "-c",
-                    "pkill -9 -f dnstt"
-                )) } catch (_: Exception) {}
-
-            } catch (_: Exception) {}
-
-            // Arrêt du service après nettoyage
-            withContext(Dispatchers.Main) {
-                stopSelf()
-                            }
+                if (isZivpn) {
+                    // ZIVPN: arrêt SYNCHRONE - tuer tout avant de signaler DISCONNECTED
+                    withTimeoutOrNull(4000L) { engineRef?.stop() }
+                    try {
+                        val p = Runtime.getRuntime().exec(arrayOf("sh", "-c",
+                            "killall -9 libuz_core.so libload_core.so libxray.so 2>/dev/null; " +
+                            "pkill -9 -f libuz_core 2>/dev/null; pkill -9 -f libload_core 2>/dev/null; " +
+                            "sleep 1"
+                        ))
+                        p.waitFor(3, java.util.concurrent.TimeUnit.SECONDS)
+                    } catch (_: Exception) {}
+                    zivpnServerIp = null
+                    tunnelEngine = null
+                    // Signaler DISCONNECTED seulement après nettoyage complet
+                    withContext(Dispatchers.Main) {
+                        updateStatus(ConnectionStatus.DISCONNECTED, "Disconnected")
+                    }
+                    KighmuLogger.info(TAG, "ZIVPN arret nucleaire complet - pret pour reconnexion")
+                    // NE PAS appeler stopSelf() - garder service vivant pour reconnexion rapide
+                } else {
+                    withTimeoutOrNull(3000L) { engineRef?.stop() }
+                    try { Runtime.getRuntime().exec(arrayOf("sh", "-c",
+                        "killall -9 libtun2socks.so xray hysteria libhysteria.so dnstt libdnstt.so libuz_core.so libload_core.so"
+                    )) } catch (_: Exception) {}
+                    try { Runtime.getRuntime().exec(arrayOf("sh", "-c",
+                        "pkill -9 -f dnstt"
+                    )) } catch (_: Exception) {}
+                    withContext(Dispatchers.Main) { stopSelf() }
+                }
+            } catch (_: Exception) {
+                withContext(Dispatchers.Main) {
+                    updateStatus(ConnectionStatus.DISCONNECTED, "Disconnected")
+                }
+            }
         }
     }
     private fun registerNetworkCallback() {

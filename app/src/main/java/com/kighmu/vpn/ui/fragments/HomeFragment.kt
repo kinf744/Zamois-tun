@@ -113,6 +113,7 @@ class HomeFragment : Fragment() {
             btnConnect.setOnClickListener {
                 val activity = requireActivity() as MainActivity
                 when (viewModel.connectionStatus.value) {
+                    ConnectionStatus.STOPPING -> { /* nettoyage en cours - ignorer */ }
                     ConnectionStatus.CONNECTED,
                     ConnectionStatus.CONNECTING,
                     ConnectionStatus.RECONNECTING,
@@ -128,6 +129,7 @@ class HomeFragment : Fragment() {
                         ConnectionStatus.CONNECTED -> "CONNECTED"
                         ConnectionStatus.CONNECTING,
                         ConnectionStatus.RECONNECTING -> "CONNECTING"
+                        ConnectionStatus.STOPPING -> "STOPPING..."
                         else -> "DISCONNECTED"
                     }
                     val color = when (status) {
@@ -137,6 +139,8 @@ class HomeFragment : Fragment() {
                         ConnectionStatus.RECONNECTING,
                         ConnectionStatus.ERROR ->
                             Color.parseColor("#F44336")
+                        ConnectionStatus.STOPPING ->
+                            Color.parseColor("#FF9800")
                         else ->
                             Color.parseColor("#1F6FEB")
                     }
