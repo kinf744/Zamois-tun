@@ -266,12 +266,23 @@ class ExportActivity : AppCompatActivity() {
             put("files", files)
         }.toString()
 
-        val conn = URL("https://api.github.com/gists").openConnection() as HttpURLConnection
+        // Bypasser le tunnel VPN pour atteindre GitHub directement
+        // via le réseau physique (évite timeout quand KIGHMU VPN est actif)
+        val cm = getSystemService(android.content.Context.CONNECTIVITY_SERVICE)
+                as android.net.ConnectivityManager
+        val physicalNetwork = cm.allNetworks.firstOrNull { net ->
+            val caps = cm.getNetworkCapabilities(net)
+            caps != null &&
+            caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+            caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_NOT_VPN)
+        }
+        val conn = (physicalNetwork?.openConnection(URL("https://api.github.com/gists"))
+            ?: URL("https://api.github.com/gists").openConnection()) as HttpURLConnection
         conn.requestMethod = "POST"
         conn.doOutput = true
         conn.doInput = true
-        conn.connectTimeout = 15000
-        conn.readTimeout = 15000
+        conn.connectTimeout = 30000
+        conn.readTimeout = 30000
         conn.setRequestProperty("Authorization", "token $token")
         conn.setRequestProperty("Content-Type", "application/json")
         conn.setRequestProperty("Accept", "application/vnd.github+json")
