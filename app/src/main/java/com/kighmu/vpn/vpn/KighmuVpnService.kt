@@ -775,9 +775,11 @@ class KighmuVpnService : VpnService() {
         val tlsSec = if (p.tls) "tls" else "none"
         val sniVal = p.sni.ifBlank { p.serverAddress }
         val tlsBlock = if (p.tls) """, "tlsSettings": { "serverName": "$sniVal", "fingerprint": "chrome" }""" else ""
+        // TCP optimisé: sockopt keepalive + tcpFastOpen pour réduire latence sur mobile
+        val tcpSockopt = ""","sockopt":{"tcpKeepAliveInterval":60,"tcpFastOpen":true,"mark":0}"""
         val ss = when (p.transport) {
             "ws", "websocket"    -> """{"network":"ws","security":"$tlsSec"$tlsBlock,"wsSettings":{"path":"${p.wsPath}","headers":{"Host":"${p.wsHost}"}}}"""
-            "tcp", "raw"         -> """{"network":"tcp","security":"$tlsSec"$tlsBlock,"tcpSettings":{"header":{"type":"none"}}}"""
+            "tcp", "raw"         -> """{"network":"tcp","security":"$tlsSec"$tlsBlock,"tcpSettings":{"header":{"type":"none"}}$tcpSockopt}"""
             "grpc"                -> """{"network":"grpc","security":"$tlsSec"$tlsBlock,"grpcSettings":{"serviceName":"${p.wsPath}"}}"""
             "httpupgrade"         -> """{"network":"httpupgrade","security":"$tlsSec"$tlsBlock,"httpupgradeSettings":{"path":"${p.wsPath}","host":"${p.wsHost}"}}"""
             "xhttp", "splithttp" -> """{"network":"splithttp","security":"$tlsSec"$tlsBlock,"splithttpSettings":{"path":"${p.wsPath}","host":"${p.wsHost}","mode":"stream-up"}}"""
@@ -789,6 +791,13 @@ class KighmuVpnService : VpnService() {
             "trojan" -> """{"protocol":"trojan","settings":{"servers":[{"address":"${p.serverAddress}","port":${p.serverPort},"password":"${p.uuid}"}]},"streamSettings":$ss,"mux":{"enabled":false}}"""
             else       -> """{"protocol":"${p.protocol}","settings":{}}"""
         }
-        return """{"log":{"loglevel":"warning"},"inbounds":[{"port":10808,"listen":"127.0.0.1","protocol":"socks","settings":{"udp":true,"auth":"noauth"},"sniffing":{"enabled":false}}],"outbounds":[$ob,{"protocol":"freedom","tag":"direct"}],"routing":{"domainStrategy":"AsIs","rules":[]}}"""
+        val logLevel = if (p.transport == "tcp" || p.transport == "raw") "info" else "warning"
+        return """{
+  "log":{"loglevel":"$logLevel"},
+  "policy":{"levels":{"0":{"handshake":4,"connIdle":300,"uplinkOnly":1,"downlinkOnly":1,"bufferSize":512}},"system":{"statsInboundUplink":false,"statsInboundDownlink":false}},
+  "inbounds":[{"port":10808,"listen":"127.0.0.1","protocol":"socks","settings":{"udp":true,"auth":"noauth"},"sniffing":{"enabled":false}}],
+  "outbounds":[$ob,{"protocol":"freedom","tag":"direct"}],
+  "routing":{"domainStrategy":"AsIs","rules":[]}
+}"""
     }
 }

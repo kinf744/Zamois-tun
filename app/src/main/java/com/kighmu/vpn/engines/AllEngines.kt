@@ -659,6 +659,7 @@ class XrayEngine(
                     val t = Thread {
                         try {
                             vpnService?.let {
+                                // MTU 1400 optimal pour TCP/mobile (évite fragmentation 4G/LTE)
                                 com.kighmu.vpn.engines.HevTun2Socks.start(context, fd, targetPort, it, 1400)
                             }
                             KighmuLogger.info(TAG, "HevTun2Socks démarré ✅")
