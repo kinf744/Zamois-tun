@@ -14,9 +14,9 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.collect
 import com.kighmu.vpn.ui.adapters.SlowDnsProfileAdapter
-import com.kighmu.vpn.profiles.V2rayDnsProfileRepository
-import com.kighmu.vpn.ui.adapters.V2rayDnsProfileAdapter
-import com.kighmu.vpn.ui.dialogs.V2rayDnsProfileEditDialog
+import com.kighmu.vpn.profiles.XrayDnsProfileRepository
+import com.kighmu.vpn.ui.adapters.XrayDnsProfileAdapter
+import com.kighmu.vpn.ui.dialogs.XrayDnsProfileEditDialog
 import com.kighmu.vpn.profiles.SlowDnsProfile
 import com.kighmu.vpn.profiles.ProfileRepository
 import com.kighmu.vpn.ui.MainViewModel
@@ -695,48 +695,47 @@ class ConfigFragment : Fragment() {
     }
 
     private fun setupV2rayDnsProfiles(view: View) {
-        val v2dnsRepo = com.kighmu.vpn.profiles.V2rayDnsProfileRepository(requireContext())
-        val profiles = v2dnsRepo.getAll().toMutableList()
-        
-        lateinit var adapter: com.kighmu.vpn.ui.adapters.V2rayDnsProfileAdapter
-        adapter = com.kighmu.vpn.ui.adapters.V2rayDnsProfileAdapter(
+        val xrayDnsRepo = com.kighmu.vpn.profiles.XrayDnsProfileRepository(requireContext())
+        val profiles = xrayDnsRepo.getAll().toMutableList()
+
+        lateinit var adapter: com.kighmu.vpn.ui.adapters.XrayDnsProfileAdapter
+        adapter = com.kighmu.vpn.ui.adapters.XrayDnsProfileAdapter(
             profiles,
             onSelectionChanged = { id, selected ->
-                v2dnsRepo.updateSelection(id, selected)
+                xrayDnsRepo.updateSelection(id, selected)
             },
             onEdit = { profile ->
-                com.kighmu.vpn.ui.dialogs.V2rayDnsProfileEditDialog.show(requireContext(), profile) { updated ->
-                    v2dnsRepo.update(updated)
-                    adapter.setProfiles(v2dnsRepo.getAll())
+                com.kighmu.vpn.ui.dialogs.XrayDnsProfileEditDialog.show(requireContext(), profile) { updated ->
+                    xrayDnsRepo.update(updated)
+                    adapter.setProfiles(xrayDnsRepo.getAll())
                 }
             },
             onDelete = { profile ->
                 android.app.AlertDialog.Builder(requireContext())
                     .setTitle("Supprimer profil")
-                    .setMessage("Êtes-vous sûr de vouloir supprimer '${profile.profileName}' ?")
+                    .setMessage("Supprimer le profil Xray+DNS : '${profile.profileName}' ?")
                     .setPositiveButton("Supprimer") { _, _ ->
-                        v2dnsRepo.delete(profile.id)
-                        adapter.setProfiles(v2dnsRepo.getAll())
+                        xrayDnsRepo.delete(profile.id)
+                        adapter.setProfiles(xrayDnsRepo.getAll())
                     }
                     .setNegativeButton("Annuler", null)
                     .show()
             },
             onClone = { profile ->
-                v2dnsRepo.clone(profile.id)
-                adapter.setProfiles(v2dnsRepo.getAll())
+                xrayDnsRepo.clone(profile.id)
+                adapter.setProfiles(xrayDnsRepo.getAll())
             }
         )
-        
+
         val rv = view.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rv_v2dns_profiles)
         rv.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(requireContext())
         rv.adapter = adapter
-        
-        // Bouton pour ajouter un nouveau profil
+
         val btnAdd = view.findViewById<android.widget.Button>(R.id.btn_add_v2dns_profile)
         btnAdd.setOnClickListener {
-            com.kighmu.vpn.ui.dialogs.V2rayDnsProfileEditDialog.show(requireContext()) { newProfile ->
-                v2dnsRepo.add(newProfile)
-                adapter.setProfiles(v2dnsRepo.getAll())
+            com.kighmu.vpn.ui.dialogs.XrayDnsProfileEditDialog.show(requireContext()) { newProfile ->
+                xrayDnsRepo.add(newProfile)
+                adapter.setProfiles(xrayDnsRepo.getAll())
             }
         }
     }
