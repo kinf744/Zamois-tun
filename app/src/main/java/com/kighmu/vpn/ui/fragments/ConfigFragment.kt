@@ -230,9 +230,9 @@ class ConfigFragment : Fragment() {
         // Xray - chaque mode charge uniquement ses propres données
         val xrayMigrated = com.kighmu.vpn.models.XrayConfig.migrate(c.xray)
         if (parsedJsonFromV2dnsLink.isBlank()) parsedJsonFromV2dnsLink = c.v2dns.jsonConfig.ifBlank { xrayMigrated.v2dnsJsonConfig }
-        if (currentTab == 5) {
+        if (currentTab == 4) {
             view.findViewById<EditText>(R.id.et_v2dns_json).setText(c.v2dns.jsonConfig.ifBlank { xrayMigrated.v2dnsJsonConfig })
-        } else if (currentTab == 4) {
+        } else if (currentTab == 3) {
             // Mode lien : charger uniquement linkConfig
             // Mode json : charger uniquement jsonConfig2
             // Les deux champs sont toujours chargés mais chacun depuis sa propre source
@@ -295,12 +295,12 @@ class ConfigFragment : Fragment() {
 
         val rgXray = view.findViewById<android.widget.RadioGroup>(R.id.rg_xray_mode)
         val tvXrayWarning = view.findViewById<android.widget.TextView>(R.id.tv_xray_mode_warning)
-        if (currentTab == 4 && rgXray.checkedRadioButtonId == -1) {
+        if (currentTab == 3 && rgXray.checkedRadioButtonId == -1) {
             tvXrayWarning.visibility = View.VISIBLE
             return
         }
 
-        val xray = if (currentTab == 5) {
+        val xray = if (currentTab == 4) {
             // V2DNS totalement indépendant - pas de double sauvegarde
             val v2dnsJson = view.findViewById<android.widget.EditText>(R.id.et_v2dns_json).text.toString()
             val finalV2dns = v2dnsJson.ifBlank { c.v2dns.jsonConfig }
@@ -355,7 +355,7 @@ class ConfigFragment : Fragment() {
         }
         // Validation JSON avant sauvegarde
         val xrayJsonToValidate = when {
-            currentTab == 5 -> xray.v2dnsJsonConfig
+            currentTab == 4 -> xray.v2dnsJsonConfig
             xray.activeMode == "link" -> xray.linkConfig.parsedJson
             else -> xray.jsonConfig2.json
         }
@@ -376,7 +376,7 @@ class ConfigFragment : Fragment() {
             sshSsl = ssl,
             slowDns = dns,
             xray = xray,
-            v2dns = if (currentTab == 5) com.kighmu.vpn.models.V2dnsConfig(jsonConfig = xray.v2dnsJsonConfig) else c.v2dns,
+            v2dns = if (currentTab == 4) com.kighmu.vpn.models.V2dnsConfig(jsonConfig = xray.v2dnsJsonConfig) else c.v2dns,
             hysteria = hys,
             zivpnHost = view.findViewById<EditText>(R.id.et_zivpn_host).text.toString(),
             zivpnPort = view.findViewById<EditText>(R.id.et_zivpn_port).text.toString(),
