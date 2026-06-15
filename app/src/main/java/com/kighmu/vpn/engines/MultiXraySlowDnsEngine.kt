@@ -139,7 +139,7 @@ class MultiXraySlowDnsEngine(
             KighmuLogger.info(TAG, "Flux[${idx+1}/$totalFlux] dnstt démarrage: ${flux.label}")
             var port    = -1
             var attempt = 0
-            val engine  = SlowDnsEngine(flux.dnsCfg, context, null, idx)
+            val engine  = SlowDnsEngine(flux.dnsCfg, context, vpnService, idx)
 
             while (attempt < MAX_RETRIES && port <= 0) {
                 attempt++
@@ -191,7 +191,7 @@ class MultiXraySlowDnsEngine(
                         nameserver     = result.flux.dnsCfg.slowDns.nameserver,
                         publicKey      = result.flux.dnsCfg.slowDns.publicKey
                     )
-                    val xrayEngine = XrayDnsEngine(context, xrayProfile, vpnService, result.idx)
+                    val xrayEngine = XrayDnsEngine(context, xrayProfile, vpnService, result.idx, result.port)
                 try {
                     val socksPort = withTimeoutOrNull(XRAY_TIMEOUT_MS) { xrayEngine.start() } ?: -1
                     if (socksPort > 0) {
@@ -241,7 +241,7 @@ class MultiXraySlowDnsEngine(
                         replacingCount++
                         try {
                             val flux = synchronized(fluxConfigs) { fluxConfigs.getOrNull(idx) } ?: return@launch
-                            val newDnstt = SlowDnsEngine(flux.dnsCfg, context, null, idx)
+                            val newDnstt = SlowDnsEngine(flux.dnsCfg, context, vpnService, idx)
                             val newDnsttPort = withTimeoutOrNull(DNSTT_TIMEOUT_MS) {
                                 newDnstt.startDnsttOnly()
                             } ?: -1
@@ -268,7 +268,7 @@ class MultiXraySlowDnsEngine(
                         nameserver     = flux.dnsCfg.slowDns.nameserver,
                         publicKey      = flux.dnsCfg.slowDns.publicKey
                     )
-                        val newXray = XrayDnsEngine(context, newXrayProfile, vpnService, idx)
+                        val newXray = XrayDnsEngine(context, newXrayProfile, vpnService, idx, newDnsttPort)
                             val newPort = withTimeoutOrNull(XRAY_TIMEOUT_MS) { newXray.start() } ?: -1
                             if (newPort > 0) {
                                 val oldXray = synchronized(xrayEngines) {
