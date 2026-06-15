@@ -266,18 +266,18 @@ class ExportActivity : AppCompatActivity() {
             put("files", files)
         }.toString()
 
-        // Bypasser le tunnel VPN pour atteindre GitHub directement
-        // via le réseau physique (évite timeout quand KIGHMU VPN est actif)
-        val cm = getSystemService(android.content.Context.CONNECTIVITY_SERVICE)
-                as android.net.ConnectivityManager
-        val physicalNetwork = cm.allNetworks.firstOrNull { net ->
-            val caps = cm.getNetworkCapabilities(net)
+        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
+        val underlyingNetwork = connectivityManager.allNetworks.firstOrNull { net ->
+            val caps = connectivityManager.getNetworkCapabilities(net)
             caps != null &&
             caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
-            caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_NOT_VPN)
+            !caps.hasTransportType(android.net.NetworkCapabilities.TRANSPORT_VPN)
         }
-        val conn = (physicalNetwork?.openConnection(URL("https://api.github.com/gists"))
-            ?: URL("https://api.github.com/gists").openConnection()) as HttpURLConnection
+        val conn = (if (underlyingNetwork != null) {
+            underlyingNetwork.openConnection(URL("https://api.github.com/gists"))
+        } else {
+            URL("https://api.github.com/gists").openConnection()
+        }) as HttpURLConnection
         conn.requestMethod = "POST"
         conn.doOutput = true
         conn.doInput = true
