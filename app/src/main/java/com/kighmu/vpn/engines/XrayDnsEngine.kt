@@ -62,7 +62,7 @@ class XrayDnsEngine(
                     val s = Socket()
                     s.connect(InetSocketAddress("127.0.0.1", DNSTT_PORT), 100)
                     s.close(); dnsttReady = true
-                    KighmuLogger.info(TAG, "dnstt pret en \${waited}ms sur port \${DNSTT_PORT}")
+                    KighmuLogger.info(TAG, "dnstt pret en ${waited}ms sur port ${DNSTT_PORT}")
                     break
                 } catch (_: Exception) {}
             }
@@ -85,21 +85,21 @@ class XrayDnsEngine(
             }
             if (!xrayReady) throw Exception("Xray DNS n'a pas demarre dans les temps")
         }
-        KighmuLogger.info(TAG, "XrayDnsEngine pret sur port \${LOCAL_SOCKS_PORT} ✅")
+        KighmuLogger.info(TAG, "XrayDnsEngine pret sur port ${LOCAL_SOCKS_PORT} ✅")
         return LOCAL_SOCKS_PORT
     }
 
     private fun startDnsttProcess() {
         val nativeDir = context.applicationInfo.nativeLibraryDir
         val bin = File(nativeDir, "libdnstt.so")
-        if (!bin.exists()) throw Exception("libdnstt.so introuvable dans \${nativeDir}")
+        if (!bin.exists()) throw Exception("libdnstt.so introuvable dans ${nativeDir}")
 
         val cmd = listOf(
             bin.absolutePath,
-            "-udp", "\${profile.dnsServer}:\${profile.dnsPort}",
+            "-udp", "${profile.dnsServer}:${profile.dnsPort}",
             "-pubkey", cleanPublicKey,
             profile.nameserver,
-            "127.0.0.1:\${DNSTT_PORT}"
+            "127.0.0.1:${DNSTT_PORT}"
         )
 
         KighmuLogger.info(TAG, "dnstt cmd: ${cmd.joinToString(separator = " ")}")
@@ -118,17 +118,17 @@ class XrayDnsEngine(
                         line.contains("retransmit") || line.contains("EOF") ||
                         line.contains("connection reset") || line.contains("broken pipe") ||
                         line.contains("accepted") || line.contains("copy stream")
-                    if (running && !skip) KighmuLogger.info(TAG, "dnstt: \${line}")
+                    if (running && !skip) KighmuLogger.info(TAG, "dnstt: ${line}")
                 }
             } catch (e: Exception) {
-                if (running) KighmuLogger.error(TAG, "dnstt stdout: \${e.message}")
+                if (running) KighmuLogger.error(TAG, "dnstt stdout: ${e.message}")
             }
         }.also { it.isDaemon = true }.start()
 
         Thread.sleep(500)
         try {
             val exitVal = process.exitValue()
-            throw Exception("dnstt crashed (exit=\${exitVal})")
+            throw Exception("dnstt crashed (exit=${exitVal})")
         } catch (_: IllegalThreadStateException) {}
     }
 
@@ -209,10 +209,10 @@ class XrayDnsEngine(
             }
             jsonConfig = obj.toString(2)
         } catch (e: Exception) {
-            KighmuLogger.error(TAG, "Erreur normalisation config: \${e.message}")
+            KighmuLogger.error(TAG, "Erreur normalisation config: ${e.message}")
         }
 
-        val fileName = if (instanceId == 0) "xraydns_config.json" else "xraydns_config_\${instanceId}.json"
+        val fileName = if (instanceId == 0) "xraydns_config.json" else "xraydns_config_${instanceId}.json"
         val file = File(context.filesDir, fileName)
         file.writeText(jsonConfig)
         return file
@@ -267,13 +267,13 @@ class XrayDnsEngine(
         val abi = android.os.Build.SUPPORTED_ABIS[0]
         val target = File(context.filesDir, "xray_dns")
         return try {
-            context.assets.open("xray/\${abi}/xray").use { inp ->
+            context.assets.open("xray/${abi}/xray").use { inp ->
                 target.outputStream().use { out -> inp.copyTo(out) }
             }
             target.setExecutable(true)
             target
         } catch (e: Exception) {
-            KighmuLogger.error(TAG, "Xray binary introuvable: \${e.message}")
+            KighmuLogger.error(TAG, "Xray binary introuvable: ${e.message}")
             null
         }
     }
@@ -294,7 +294,7 @@ class XrayDnsEngine(
                 && !lower.contains("connection reset") && !lower.contains("broken pipe")
                 && !lower.contains("EOF") && !lower.contains("use of closed")
                 && !lower.contains("failed to dial") ->
-                    KighmuLogger.error(TAG, "XrayDns: \${line.take(150)}")
+                    KighmuLogger.error(TAG, "XrayDns: ${line.take(150)}")
             }
         }
 
@@ -312,7 +312,7 @@ class XrayDnsEngine(
                             vpnService?.let { HevTun2Socks.start(context, fd, LOCAL_SOCKS_PORT, it, 1400) }
                             KighmuLogger.info(TAG, "HevTun2Socks demarre ✅")
                         } catch (e: Exception) {
-                            KighmuLogger.error(TAG, "HevTun2Socks erreur: \${e.message}")
+                            KighmuLogger.error(TAG, "HevTun2Socks erreur: ${e.message}")
                         }
                     }
                     t.isDaemon = true; t.start()
@@ -322,7 +322,7 @@ class XrayDnsEngine(
                     val t = Thread {
                         Tun2Socks.runTun2Socks(
                             fd, 1500, "10.0.0.2", "255.255.255.0",
-                            "127.0.0.1:\${LOCAL_SOCKS_PORT}", "127.0.0.1:7300", false, 3
+                            "127.0.0.1:${LOCAL_SOCKS_PORT}", "127.0.0.1:7300", false, 3
                         )
                     }
                     t.isDaemon = true
@@ -334,7 +334,7 @@ class XrayDnsEngine(
                 val relay = com.kighmu.vpn.vpn.Tun2SocksRelay(pfd.fileDescriptor, "127.0.0.1", LOCAL_SOCKS_PORT)
                 relay.start()
             } catch (e: Exception) {
-                KighmuLogger.error(TAG, "Erreur startTun2Socks: \${e.message}")
+                KighmuLogger.error(TAG, "Erreur startTun2Socks: ${e.message}")
             }
         }
     }
@@ -350,8 +350,8 @@ class XrayDnsEngine(
         } catch (_: Exception) {}
         xrayProcess = null
         try { dnsttProcess?.destroyForcibly(); dnsttProcess?.destroy() } catch (_: Exception) {}
-        try { Runtime.getRuntime().exec(arrayOf("sh", "-c", "fuser -k \${_dnsttPort}/tcp 2>/dev/null")) } catch (_: Exception) {}
-        try { Runtime.getRuntime().exec(arrayOf("sh", "-c", "fuser -k \${_dnsttPort}/udp 2>/dev/null")) } catch (_: Exception) {}
+        try { Runtime.getRuntime().exec(arrayOf("sh", "-c", "fuser -k ${_dnsttPort}/tcp 2>/dev/null")) } catch (_: Exception) {}
+        try { Runtime.getRuntime().exec(arrayOf("sh", "-c", "fuser -k ${_dnsttPort}/udp 2>/dev/null")) } catch (_: Exception) {}
         dnsttProcess = null
         _socksPort = 0
         _dnsttPort = 0
