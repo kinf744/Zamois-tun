@@ -51,7 +51,25 @@ class MultiXraySlowDnsEngine(
             val dnstt = SlowDnsEngine(baseConfig, context, null, 0)
             synchronized(dnsttEngines) { dnsttEngines.add(dnstt) }
             val port = dnstt.startDnsttOnly()
-            val xray = XrayEngine(baseConfig, context, port, 0, vpnService)
+            val defaultProfile = com.kighmu.vpn.profiles.XrayDnsProfile(
+                        xrayJsonConfig = baseConfig.xray.getActiveJson(),
+                        protocol       = baseConfig.xray.protocol,
+                        serverAddress  = baseConfig.xray.serverAddress,
+                        serverPort     = baseConfig.xray.serverPort,
+                        uuid           = baseConfig.xray.uuid,
+                        encryption     = baseConfig.xray.encryption,
+                        transport      = baseConfig.xray.transport,
+                        wsPath         = baseConfig.xray.wsPath,
+                        wsHost         = baseConfig.xray.wsHost,
+                        tls            = baseConfig.xray.tls,
+                        sni            = baseConfig.xray.sni,
+                        allowInsecure  = baseConfig.xray.allowInsecure,
+                        dnsServer      = baseConfig.slowDns.dnsServer,
+                        dnsPort        = baseConfig.slowDns.dnsPort,
+                        nameserver     = baseConfig.slowDns.nameserver,
+                        publicKey      = baseConfig.slowDns.publicKey
+                    )
+                    val xray = XrayDnsEngine(context, defaultProfile, vpnService, 0)
             synchronized(xrayEngines) { xrayEngines.add(xray) }
             activePorts = listOf(port)
             return xray.start()
@@ -155,7 +173,25 @@ class MultiXraySlowDnsEngine(
         val xrayJobs = dnsttResults.map { result ->
             scope.async {
                 KighmuLogger.info(TAG, "XrayEngine[${result.idx}] démarrage sur dnsttPort=${result.port}")
-                val xrayEngine = XrayEngine(result.flux.xrayCfg, context, result.port, result.idx, vpnService)
+                val xrayProfile = com.kighmu.vpn.profiles.XrayDnsProfile(
+                        xrayJsonConfig = result.flux.xrayCfg.xray.getActiveJson(),
+                        protocol       = result.flux.xrayCfg.xray.protocol,
+                        serverAddress  = result.flux.xrayCfg.xray.serverAddress,
+                        serverPort     = result.flux.xrayCfg.xray.serverPort,
+                        uuid           = result.flux.xrayCfg.xray.uuid,
+                        encryption     = result.flux.xrayCfg.xray.encryption,
+                        transport      = result.flux.xrayCfg.xray.transport,
+                        wsPath         = result.flux.xrayCfg.xray.wsPath,
+                        wsHost         = result.flux.xrayCfg.xray.wsHost,
+                        tls            = result.flux.xrayCfg.xray.tls,
+                        sni            = result.flux.xrayCfg.xray.sni,
+                        allowInsecure  = result.flux.xrayCfg.xray.allowInsecure,
+                        dnsServer      = result.flux.dnsCfg.slowDns.dnsServer,
+                        dnsPort        = result.flux.dnsCfg.slowDns.dnsPort,
+                        nameserver     = result.flux.dnsCfg.slowDns.nameserver,
+                        publicKey      = result.flux.dnsCfg.slowDns.publicKey
+                    )
+                    val xrayEngine = XrayDnsEngine(context, xrayProfile, vpnService, result.idx)
                 try {
                     val socksPort = withTimeoutOrNull(XRAY_TIMEOUT_MS) { xrayEngine.start() } ?: -1
                     if (socksPort > 0) {
@@ -214,7 +250,25 @@ class MultiXraySlowDnsEngine(
                                 try { newDnstt.stop() } catch (_: Exception) {}
                                 return@launch
                             }
-                            val newXray = XrayEngine(flux.xrayCfg, context, newDnsttPort, idx, vpnService)
+                            val newXrayProfile = com.kighmu.vpn.profiles.XrayDnsProfile(
+                        xrayJsonConfig = flux.xrayCfg.xray.getActiveJson(),
+                        protocol       = flux.xrayCfg.xray.protocol,
+                        serverAddress  = flux.xrayCfg.xray.serverAddress,
+                        serverPort     = flux.xrayCfg.xray.serverPort,
+                        uuid           = flux.xrayCfg.xray.uuid,
+                        encryption     = flux.xrayCfg.xray.encryption,
+                        transport      = flux.xrayCfg.xray.transport,
+                        wsPath         = flux.xrayCfg.xray.wsPath,
+                        wsHost         = flux.xrayCfg.xray.wsHost,
+                        tls            = flux.xrayCfg.xray.tls,
+                        sni            = flux.xrayCfg.xray.sni,
+                        allowInsecure  = flux.xrayCfg.xray.allowInsecure,
+                        dnsServer      = flux.dnsCfg.slowDns.dnsServer,
+                        dnsPort        = flux.dnsCfg.slowDns.dnsPort,
+                        nameserver     = flux.dnsCfg.slowDns.nameserver,
+                        publicKey      = flux.dnsCfg.slowDns.publicKey
+                    )
+                        val newXray = XrayDnsEngine(context, newXrayProfile, vpnService, idx)
                             val newPort = withTimeoutOrNull(XRAY_TIMEOUT_MS) { newXray.start() } ?: -1
                             if (newPort > 0) {
                                 val oldXray = synchronized(xrayEngines) {
