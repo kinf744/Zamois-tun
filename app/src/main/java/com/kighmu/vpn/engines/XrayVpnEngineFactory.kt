@@ -3,7 +3,6 @@ package com.kighmu.vpn.engines
 import android.content.Context
 import android.net.VpnService
 import com.kighmu.vpn.models.KighmuConfig
-import com.kighmu.vpn.models.TunnelEngine
 import com.kighmu.vpn.profiles.XrayVpnProfile
 import com.kighmu.vpn.profiles.XrayVpnProfileRepository
 import com.kighmu.vpn.utils.KighmuLogger
@@ -25,21 +24,21 @@ object XrayVpnEngineFactory {
     private fun buildProfileFromConfig(config: KighmuConfig): XrayVpnProfile {
         val xray = config.xray
         val migrated = com.kighmu.vpn.models.XrayConfig.migrate(xray)
-        val json = migrated.jsonConfig2.json.ifBlank {
-            migrated.getActiveJson()
-        }
+        val json = migrated.jsonConfig2.json.ifBlank { migrated.getActiveJson() }
+        val link = migrated.linkConfig.link
         return XrayVpnProfile(
-            profileName    = "Default",
-            xrayLink       = migrated.linkConfig.link,
-            xrayJsonConfig = json,
-            protocol       = "vmess",
-            serverAddress  = "",
-            serverPort     = 443
+            profileName   = "Default",
+            activeMode    = migrated.activeMode,
+            xrayLink      = link,
+            xrayLinkJson  = migrated.linkConfig.parsedJson,
+            xrayJson      = json,
+            protocol      = "vmess",
+            serverAddress = "",
+            serverPort    = 443
         )
     }
 }
 
-// Wrapper qui adapte XrayVpnEngine en TunnelEngine
 class XrayVpnEngineWrapper(
     private val context: Context,
     private val profile: XrayVpnProfile,
@@ -60,7 +59,7 @@ class XrayVpnEngineWrapper(
             HevTun2Socks.init()
             if (HevTun2Socks.isAvailable && vpnService != null) {
                 HevTun2Socks.start(context, fd, inner.getSocksPort(), vpnService, mtu = 8500)
-                KighmuLogger.info("XrayVpnEngineWrapper", "HevTun2Socks demarre ✅")
+                KighmuLogger.info("XrayVpnEngineWrapper", "HevTun2Socks demarre OK")
             } else {
                 KighmuLogger.error("XrayVpnEngineWrapper", "HevTun2Socks non disponible")
             }

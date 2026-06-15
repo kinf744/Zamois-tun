@@ -155,30 +155,23 @@ class XrayVpnEngine(
             tlsPart.contains("tls")     -> "tls"
             else                        -> "none"
         }
-        val path    = profile.wsPath.ifBlank { "/" }
-        val host    = profile.wsHost.ifBlank { profile.serverAddress }
+        val p       = profile.wsPath.ifBlank { "/" }
+        val h       = profile.wsHost.ifBlank { profile.serverAddress }
         val grpcSvc = profile.grpcServiceName.ifBlank { profile.wsPath.ifBlank { "/" } }
         val kcpHdr  = profile.kcpHeader.ifBlank { "none" }
 
         val networkPart = when (net) {
-            "ws" ->
-                """"network":"ws","wsSettings":{"path":"$path","headers":{"Host":"$host"}}"""
-            "grpc" ->
-                """"network":"grpc","grpcSettings":{"serviceName":"$grpcSvc","multiMode":false}"""
-            "xhttp", "splithttp" ->
-                """"network":"xhttp","xhttpSettings":{"path":"$path","host":"$host","mode":"auto"}"""
-            "h2", "http" ->
-                """"network":"h2","httpSettings":{"path":"$path","host":["$host"]}"""
-            "httpupgrade" ->
-                """"network":"httpupgrade","httpupgradeSettings":{"path":"$path","host":"$host"}"""
-            "kcp", "mkcp" ->
-                """"network":"kcp","kcpSettings":{"mtu":1350,"tti":20,"uplinkCapacity":5,"downlinkCapacity":20,"congestion":false,"readBufferSize":2,"writeBufferSize":2,"header":{"type":"$kcpHdr"}}"""
-            else ->
-                """"network":"tcp","tcpSettings":{}"""
+            "ws"                  -> """"network":"ws","wsSettings":{"path":"$p","headers":{"Host":"$h"}}"""
+            "grpc"                -> """"network":"grpc","grpcSettings":{"serviceName":"$grpcSvc","multiMode":false}"""
+            "xhttp", "splithttp"  -> """"network":"xhttp","xhttpSettings":{"path":"$p","host":"$h","mode":"auto"}"""
+            "h2", "http"          -> """"network":"h2","httpSettings":{"path":"$p","host":["$h"]}"""
+            "httpupgrade"         -> """"network":"httpupgrade","httpupgradeSettings":{"path":"$p","host":"$h"}"""
+            "kcp", "mkcp"         -> """"network":"kcp","kcpSettings":{"mtu":1350,"tti":20,"uplinkCapacity":5,"downlinkCapacity":20,"congestion":false,"readBufferSize":2,"writeBufferSize":2,"header":{"type":"$kcpHdr"}}"""
+            else                  -> """"network":"tcp","tcpSettings":{}"""
         }
 
         return if (tlsPart.isNotBlank()) {
-            """{$networkPart,"security":"$security",${tlsPart.substringAfter('"security":"$security",')}"""
+            """{$networkPart,"security":"$security",$tlsPart}"""
         } else {
             """{$networkPart,"security":"none"}"""
         }

@@ -198,22 +198,49 @@ object XrayVpnProfileEditDialog {
         pbk: String = "", sid: String = ""
     ): String {
         val tlsPart = when (security) {
-            "tls"     -> ',\"tlsSettings\":{\"serverName\":\"' + sni + '\",\"fingerprint\":\"' + fp + '\"}'
-            "reality" -> ',\"realitySettings\":{\"serverName\":\"' + sni + '\",\"fingerprint\":\"' + fp + '\",\"publicKey\":\"' + pbk + '\",\"shortId\":\"' + sid + '\"}'
+            "tls"     -> ""","tlsSettings":{"serverName":"$sni","fingerprint":"$fp"}"""
+            "reality" -> ""","realitySettings":{"serverName":"$sni","fingerprint":"$fp","publicKey":"$pbk","shortId":"$sid"}"""
             else      -> ""
         }
         val net = when (transport) { "mkcp" -> "kcp"; "raw" -> "tcp"; else -> transport }
         val netSettings = when (transport) {
-            "ws"          -> ',\"wsSettings\":{\"path\":\"' + path + '\",\"headers\":{\"Host\":\"' + host + '\"}}' 
-            "xhttp"       -> ',\"xhttpSettings\":{\"path\":\"' + path + '\",\"host\":\"' + host + '\",\"mode\":\"stream-up\",\"scMaxConcurrentPosts\":16,\"scMinPostsIntervalMs\":10,\"scMaxEachPostBytes\":1000000,\"noSSEHeader\":true,\"xPaddingBytes\":\"100-1000\"}'
-            "splithttp"   -> ',\"splithttpSettings\":{\"path\":\"' + path + '\",\"host\":\"' + host + '\",\"mode\":\"stream-up\",\"scMaxConcurrentPosts\":16,\"scMinPostsIntervalMs\":10,\"scMaxEachPostBytes\":1000000}'
-            "grpc"        -> ',\"grpcSettings\":{\"serviceName\":\"' + path + '\"}'
-            "h2", "http"  -> ',\"httpSettings\":{\"path\":\"' + path + '\",\"host\":[\"' + host + '\"]}'
-            "httpupgrade" -> ',\"httpupgradeSettings\":{\"path\":\"' + path + '\",\"host\":\"' + host + '\"}'
-            "kcp", "mkcp" -> ',\"kcpSettings\":{\"mtu\":1350,\"tti\":20,\"uplinkCapacity\":5,\"downlinkCapacity\":20,\"congestion\":false,\"readBufferSize\":2,\"writeBufferSize\":2,\"header\":{\"type\":\"none\"},\"seed\":\"' + host + '\"}'
-            else          -> ',\"tcpSettings\":{\"header\":{\"type\":\"none\"}}'
+            "ws"          -> ""","wsSettings":{"path":"$path","headers":{"Host":"$host"}}"""
+            "xhttp"       -> ""","xhttpSettings":{"path":"$path","host":"$host","mode":"stream-up","scMaxConcurrentPosts":16,"scMinPostsIntervalMs":10,"scMaxEachPostBytes":1000000,"noSSEHeader":true,"xPaddingBytes":"100-1000"}"""
+            "splithttp"   -> ""","splithttpSettings":{"path":"$path","host":"$host","mode":"stream-up","scMaxConcurrentPosts":16,"scMinPostsIntervalMs":10,"scMaxEachPostBytes":1000000}"""
+            "grpc"        -> ""","grpcSettings":{"serviceName":"$path"}"""
+            "h2", "http"  -> ""","httpSettings":{"path":"$path","host":["$host"]}"""
+            "httpupgrade" -> ""","httpupgradeSettings":{"path":"$path","host":"$host"}"""
+            "kcp", "mkcp" -> ""","kcpSettings":{"mtu":1350,"tti":20,"uplinkCapacity":5,"downlinkCapacity":20,"congestion":false,"readBufferSize":2,"writeBufferSize":2,"header":{"type":"none"},"seed":"$host"}"""
+            else          -> ""","tcpSettings":{"header":{"type":"none"}}"""
         }
-        return '{\"network\":\"' + net + '\",\"security\":\"' + security + '\"' + tlsPart + netSettings + '}'
+        return """{"network":"$net","security":"$security"$tlsPart$netSettings}"""
+    }
+
+    private fun buildVmessJson(
+        obj: org.json.JSONObject, transport: String, security: String,
+        sni: String, path: String, wsHost: String
+    ): String {
+        val host    = obj.optString("add", "")
+        val port    = obj.optInt("port", 443)
+        val uuid    = obj.optString("id", "")
+        val alterId = obj.optInt("aid", 0)
+        val stream  = streamSettings(transport, security, sni, path, wsHost)
+        return """{"log":{"loglevel":"warning"},"inbounds":[{"port":10808,"protocol":"socks","settings":{"udp":true}}],"outbounds":[{"protocol":"vmess","settings":{"vnext":[{"address":"$host","port":$port,"users":[{"id":"$uuid","alterId":$alterId,"security":"auto"}]}]},"streamSettings":$stream,"mux":{"enabled":false}},{"protocol":"freedom","tag":"direct"}],"routing":{"rules":[]}}"""
+    }
+
+    private fun buildVlessOrTrojanJson(
+        proto: String, uuid: String, host: String, port: Int,
+        transport: String, security: String, sni: String,
+        path: String, wsHost: String, fp: String,
+        pbk: String, sid: String, flow: String
+    ): String {
+        val stream = streamSettings(transport, security, sni, path, wsHost, fp, pbk, sid)
+        val flowPart = if (flow.isNotEmpty()) ""","flow":"$flow"""" else ""
+        val outbound = when (proto) {
+            "trojan" -> """{"protocol":"trojan","settings":{"servers":[{"address":"$host","port":$port,"password":"$uuid"}]},"streamSettings":$stream,"mux":{"enabled":false}}"""
+            else     -> """{"protocol":"vless","settings":{"vnext":[{"address":"$host","port":$port,"users":[{"id":"$uuid","encryption":"none"$flowPart}]}]},"streamSettings":$stream,"mux":{"enabled":false}}"""
+        }
+        return """{"log":{"loglevel":"warning"},"inbounds":[{"port":10808,"protocol":"socks","settings":{"udp":true}}],"outbounds":[$outbound,{"protocol":"freedom","tag":"direct"}],"routing":{"rules":[]}}"""
     }
 
     private fun buildVmessJson(
@@ -224,8 +251,7 @@ object XrayVpnProfileEditDialog {
         val port    = obj.optInt("port", 443)
         val uuid    = obj.optString("id", "")
         val alterId = obj.optInt("aid", 0)
-        val stream  = streamSettings(transport, security, sni, path, wsHost)
-        return '{\"log\":{\"loglevel\":\"warning\"},\"inbounds\":[{\"port\":10808,\"protocol\":\"socks\",\"settings\":{\"udp\":true}}],\"outbounds\":[{\"protocol\":\"vmess\",\"settings\":{\"vnext\":[{\"address\":\"' + host + '\",\"port\":' + str(port) + ',\"users\":[{\"id\":\"' + uuid + '\",\"alterId\":' + str(alterId) + ',\"security\":\"auto\"}]}]},\"streamSettings\":' + stream + ',\"mux\":{\"enabled\":false}},{\"protocol\":\"freedom\",\"tag\":\"direct\"}],\"routing\":{\"rules\":[]}}'
+        return """{"log":{"loglevel":"warning"},"inbounds":[{"port":10808,"protocol":"socks","settings":{"udp":true}}],"outbounds":[{"protocol":"vmess","settings":{"vnext":[{"address":"$host","port":$port,"users":[{"id":"$uuid","alterId":$alterId,"security":"auto"}]}]},"streamSettings":$stream,"mux":{"enabled":false}},{"protocol":"freedom","tag":"direct"}],"routing":{"rules":[]}}"""
     }
 
     private fun buildVlessOrTrojanJson(
@@ -235,13 +261,11 @@ object XrayVpnProfileEditDialog {
         pbk: String, sid: String, flow: String
     ): String {
         val stream = streamSettings(transport, security, sni, path, wsHost, fp, pbk, sid)
+        val flowPart = if (flow.isNotEmpty()) ""","flow":"$flow"""" else ""
         val outbound = when (proto) {
-            "trojan" -> '{\"protocol\":\"trojan\",\"settings\":{\"servers\":[{\"address\":\"' + host + '\",\"port\":' + str(port) + ',\"password\":\"' + uuid + '\"}]},\"streamSettings\":' + stream + ',\"mux\":{\"enabled\":false}}'
-            else     -> {
-                val flowPart = if (flow.isNotEmpty()) ',\"flow\":\"' + flow + '\"' else ""
-                '{\"protocol\":\"vless\",\"settings\":{\"vnext\":[{\"address\":\"' + host + '\",\"port\":' + str(port) + ',\"users\":[{\"id\":\"' + uuid + '\",\"encryption\":\"none\"' + flowPart + '}]}]},\"streamSettings\":' + stream + ',\"mux\":{\"enabled\":false}}'
-            }
+            "trojan" -> """{"protocol":"trojan","settings":{"servers":[{"address":"$host","port":$port,"password":"$uuid"}]},"streamSettings":$stream,"mux":{"enabled":false}}"""
+            else     -> """{"protocol":"vless","settings":{"vnext":[{"address":"$host","port":$port,"users":[{"id":"$uuid","encryption":"none"$flowPart}]}]},"streamSettings":$stream,"mux":{"enabled":false}}"""
         }
-        return '{\"log\":{\"loglevel\":\"warning\"},\"inbounds\":[{\"port\":10808,\"protocol\":\"socks\",\"settings\":{\"udp\":true}}],\"outbounds\":[' + outbound + ',{\"protocol\":\"freedom\",\"tag\":\"direct\"}],\"routing\":{\"rules\":[]}}'
+        return """{"log":{"loglevel":"warning"},"inbounds":[{"port":10808,"protocol":"socks","settings":{"udp":true}}],"outbounds":[$outbound,{"protocol":"freedom","tag":"direct"}],"routing":{"rules":[]}}"""
     }
 }

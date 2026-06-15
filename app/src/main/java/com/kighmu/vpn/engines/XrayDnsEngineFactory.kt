@@ -3,11 +3,9 @@ package com.kighmu.vpn.engines
 import android.content.Context
 import android.net.VpnService
 import com.kighmu.vpn.models.KighmuConfig
-import com.kighmu.vpn.models.TunnelEngine
 import com.kighmu.vpn.profiles.XrayDnsProfile
 import com.kighmu.vpn.profiles.XrayDnsProfileRepository
 import com.kighmu.vpn.utils.KighmuLogger
-import kotlinx.coroutines.*
 import java.util.concurrent.LinkedBlockingQueue
 
 object XrayDnsEngineFactory {
@@ -18,33 +16,28 @@ object XrayDnsEngineFactory {
     ): TunnelEngine {
         val repo = XrayDnsProfileRepository(context)
         val selected = repo.getSelected()
-        return if (selected.size >= 2) {
-            MultiXrayDnsEngine(config, context, vpnService)
-        } else {
-            val profile = selected.firstOrNull() ?: repo.getAll().firstOrNull()
-                ?: buildProfileFromConfig(config)
-            XrayDnsEngineWrapper(context, profile, vpnService)
-        }
+        val profile = selected.firstOrNull() ?: repo.getAll().firstOrNull()
+            ?: buildProfileFromConfig(config)
+        return XrayDnsEngineWrapper(context, profile, vpnService)
     }
 
     private fun buildProfileFromConfig(config: KighmuConfig): XrayDnsProfile {
         val v2dns = config.v2dns
         val xray  = config.xray
         return XrayDnsProfile(
-            profileName   = "Default",
-            xrayLink      = xray.linkConfig.link,
+            profileName    = "Default",
+            xrayLink       = xray.linkConfig.link,
             xrayJsonConfig = v2dns.jsonConfig.ifBlank { xray.v2dnsJsonConfig },
-            protocol      = "vmess",
-            dnsServer     = "8.8.8.8",
-            dnsPort       = 53,
-            nameserver    = "",
-            publicKey     = "",
-            tunnelCount   = 1
+            protocol       = "vmess",
+            dnsServer      = "8.8.8.8",
+            dnsPort        = 53,
+            nameserver     = "",
+            publicKey      = "",
+            tunnelCount    = 1
         )
     }
 }
 
-// Wrapper qui adapte XrayDnsEngine en TunnelEngine
 class XrayDnsEngineWrapper(
     private val context: Context,
     private val profile: XrayDnsProfile,
@@ -65,7 +58,7 @@ class XrayDnsEngineWrapper(
             HevTun2Socks.init()
             if (HevTun2Socks.isAvailable && vpnService != null) {
                 HevTun2Socks.start(context, fd, inner.getSocksPort(), vpnService, mtu = 8500)
-                KighmuLogger.info("XrayDnsEngineWrapper", "HevTun2Socks demarre ✅")
+                KighmuLogger.info("XrayDnsEngineWrapper", "HevTun2Socks demarre OK")
             } else {
                 KighmuLogger.error("XrayDnsEngineWrapper", "HevTun2Socks non disponible")
             }
