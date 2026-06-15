@@ -117,7 +117,8 @@ class XrayDnsEngine(
                         line.contains("closing stream") || line.contains("keepalive") ||
                         line.contains("retransmit") || line.contains("EOF") ||
                         line.contains("connection reset") || line.contains("broken pipe") ||
-                        line.contains("accepted") || line.contains("copy stream")
+                        line.contains("accepted") || line.contains("copy stream") ||
+                        line.contains("end stream") || line.contains("session") || line.contains("MTU") || line.contains("fingerprint")
                     if (running && !skip) KighmuLogger.info(TAG, "dnstt: ${line}")
                 }
             } catch (e: Exception) {
