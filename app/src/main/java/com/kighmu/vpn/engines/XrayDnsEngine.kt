@@ -133,7 +133,11 @@ class XrayDnsEngine(
     }
 
     private fun writeXrayConfig(): File {
-        var jsonConfig = profile.xrayLink.ifBlank { buildXrayConfigFromProfile() }
+        var jsonConfig = run {
+            val candidate = profile.xrayJsonConfig.trim()
+            if (candidate.startsWith("{")) candidate
+            else buildXrayConfigFromProfile()
+        }
 
         try {
             val obj = org.json.JSONObject(jsonConfig)
