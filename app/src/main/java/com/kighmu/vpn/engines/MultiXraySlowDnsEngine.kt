@@ -2,8 +2,8 @@ package com.kighmu.vpn.engines
 
 import android.content.Context
 import com.kighmu.vpn.models.KighmuConfig
-import com.kighmu.vpn.profiles.V2rayDnsProfileRepository
-import com.kighmu.vpn.profiles.V2rayDnsProfile
+import com.kighmu.vpn.profiles.XrayDnsProfileRepository
+import com.kighmu.vpn.profiles.XrayDnsProfile
 import com.kighmu.vpn.utils.KighmuLogger
 import kotlinx.coroutines.*
 
@@ -36,14 +36,14 @@ class MultiXraySlowDnsEngine(
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val dnsttEngines = mutableListOf<SlowDnsEngine>()
-    private val xrayEngines  = mutableListOf<XrayEngine>()
+    private val xrayEngines  = mutableListOf<XrayDnsEngine>()
     private var activePorts  = listOf<Int>()
     private var socksBalancer: SocksBalancer? = null
     @Volatile private var replacingCount = 0
     private val fluxConfigs = mutableListOf<FluxConfig>()
 
     override suspend fun start(): Int {
-        val repo     = V2rayDnsProfileRepository(context)
+        val repo     = XrayDnsProfileRepository(context)
         val selected = repo.getSelected()
 
         if (selected.isEmpty()) {

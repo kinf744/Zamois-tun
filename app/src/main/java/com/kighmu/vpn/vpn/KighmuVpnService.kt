@@ -301,19 +301,9 @@ class KighmuVpnService : VpnService() {
                 val localPort = try {
                     
                 // Injecter le profil V2DNS sélectionné dans la config avant démarrage
-                val v2dnsRepo = com.kighmu.vpn.profiles.V2rayDnsProfileRepository(this@KighmuVpnService)
-                val selectedV2dns = v2dnsRepo.getSelected().firstOrNull()
-                if (selectedV2dns != null && currentConfig.tunnelMode == com.kighmu.vpn.models.TunnelMode.V2RAY_XRAY) {
-                    val builtJson = buildXrayJsonFromV2dnsProfile(selectedV2dns)
-                    currentConfig = currentConfig.copy(
-                        xray = currentConfig.xray.copy(
-                            activeMode = "json",
-                            jsonConfig2 = com.kighmu.vpn.models.XrayJsonConfig(json = builtJson),
-                            jsonConfig = builtJson
-                        )
-                    )
-                    com.kighmu.vpn.utils.KighmuLogger.info(TAG, "Profil V2DNS injecté: ${selectedV2dns.profileName} transport=${selectedV2dns.transport}")
-                }
+                // Mode 5 (V2RAY_SLOWDNS): XrayDnsEngineFactory gere les profils directement
+                // Mode 4 (V2RAY_XRAY): XrayVpnEngineFactory gere les profils directement
+                // Aucune injection manuelle necessaire - chaque engine lit son propre repo
                 tunnelEngine = TunnelEngineFactory.create(currentConfig, this@KighmuVpnService, this@KighmuVpnService)
                 
                     
@@ -636,6 +626,9 @@ class KighmuVpnService : VpnService() {
 
             KighmuLogger.info(TAG, "VPN Interface: MTU=$mtuValue, KillSwitch=$killSwitch, DNS=$dnsProtection")
             builder.addDisallowedApplication(packageName)
+            // Exclure aussi le processus UI du VPN pour les opérations réseau internes
+            // (export cloud, import, vérifications) - évite les timeouts quand VPN actif
+            try { builder.addDisallowedApplication("$packageName:ui") } catch (_: Exception) {}
             val vpnFd = builder.establish()
             
             vpnFd
@@ -793,33 +786,4 @@ class KighmuVpnService : VpnService() {
         nm.notify(NOTIFICATION_ID, buildNotification(text))
     }
 
-    private fun buildXrayJsonFromV2dnsProfile(p: com.kighmu.vpn.profiles.V2rayDnsProfile): String {
-        val tlsSec = if (p.tls) "tls" else "none"
-        val sniVal = p.sni.ifBlank { p.serverAddress }
-        val tlsBlock = if (p.tls) """, "tlsSettings": { "serverName": "$sniVal", "fingerprint": "chrome" }""" else ""
-        // TCP optimisé: sockopt keepalive + tcpFastOpen pour réduire latence sur mobile
-        val tcpSockopt = ""","sockopt":{"tcpKeepAliveInterval":60,"tcpFastOpen":true,"mark":0}"""
-        val ss = when (p.transport) {
-            "ws", "websocket"    -> """{"network":"ws","security":"$tlsSec"$tlsBlock,"wsSettings":{"path":"${p.wsPath}","headers":{"Host":"${p.wsHost}"}}}"""
-            "tcp", "raw"         -> """{"network":"tcp","security":"$tlsSec"$tlsBlock,"tcpSettings":{"header":{"type":"none"}}$tcpSockopt}"""
-            "grpc"                -> """{"network":"grpc","security":"$tlsSec"$tlsBlock,"grpcSettings":{"serviceName":"${p.wsPath}"}}"""
-            "httpupgrade"         -> """{"network":"httpupgrade","security":"$tlsSec"$tlsBlock,"httpupgradeSettings":{"path":"${p.wsPath}","host":"${p.wsHost}"}}"""
-            "xhttp", "splithttp" -> """{"network":"splithttp","security":"$tlsSec"$tlsBlock,"splithttpSettings":{"path":"${p.wsPath}","host":"${p.wsHost}","mode":"stream-up"}}"""
-            else                   -> """{"network":"tcp"}"""
-        }
-        val ob = when (p.protocol) {
-            "vmess"  -> """{"protocol":"vmess","settings":{"vnext":[{"address":"${p.serverAddress}","port":${p.serverPort},"users":[{"id":"${p.uuid}","alterId":0,"security":"${p.encryption}"}]}]},"streamSettings":$ss,"mux":{"enabled":false}}"""
-            "vless"  -> """{"protocol":"vless","settings":{"vnext":[{"address":"${p.serverAddress}","port":${p.serverPort},"users":[{"id":"${p.uuid}","encryption":"none"}]}]},"streamSettings":$ss,"mux":{"enabled":false}}"""
-            "trojan" -> """{"protocol":"trojan","settings":{"servers":[{"address":"${p.serverAddress}","port":${p.serverPort},"password":"${p.uuid}"}]},"streamSettings":$ss,"mux":{"enabled":false}}"""
-            else       -> """{"protocol":"${p.protocol}","settings":{}}"""
-        }
-        val logLevel = if (p.transport == "tcp" || p.transport == "raw") "info" else "warning"
-        return """{
-  "log":{"loglevel":"$logLevel"},
-  "policy":{"levels":{"0":{"handshake":4,"connIdle":300,"uplinkOnly":1,"downlinkOnly":1,"bufferSize":512}},"system":{"statsInboundUplink":false,"statsInboundDownlink":false}},
-  "inbounds":[{"port":10808,"listen":"127.0.0.1","protocol":"socks","settings":{"udp":true,"auth":"noauth"},"sniffing":{"enabled":false}}],
-  "outbounds":[$ob,{"protocol":"freedom","tag":"direct"}],
-  "routing":{"domainStrategy":"AsIs","rules":[]}
-}"""
-    }
 }
