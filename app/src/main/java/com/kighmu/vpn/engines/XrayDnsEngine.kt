@@ -218,18 +218,46 @@ class XrayDnsEngine(
         return file
     }
 
+    // XrayDnsEngine: dnstt fait le tunnel vers le serveur reel.
+    // Xray se connecte a dnstt en local (127.0.0.1:DNSTT_PORT) sans TLS ni Reality.
+    // Le transport indique comment Xray parle a dnstt localement.
+    private fun buildStreamSettings(transport: String): String {
+        val net     = transport.lowercase()
+        val path    = profile.wsPath.ifBlank { "/" }
+        val host    = profile.wsHost.ifBlank { "127.0.0.1" }
+        val grpcSvc = profile.wsPath.ifBlank { "/" }
+
+        return when (net) {
+            "ws" ->
+                """{"network":"ws","security":"none","wsSettings":{"path":"$path","headers":{"Host":"$host"}}}"""
+            "grpc" ->
+                """{"network":"grpc","security":"none","grpcSettings":{"serviceName":"$grpcSvc","multiMode":false}}"""
+            "xhttp", "splithttp" ->
+                """{"network":"xhttp","security":"none","xhttpSettings":{"path":"$path","host":"$host","mode":"auto"}}"""
+            "h2", "http" ->
+                """{"network":"h2","security":"none","httpSettings":{"path":"$path","host":["$host"]}}"""
+            "httpupgrade" ->
+                """{"network":"httpupgrade","security":"none","httpupgradeSettings":{"path":"$path","host":"$host"}}"""
+            "kcp", "mkcp" ->
+                """{"network":"kcp","security":"none","kcpSettings":{"mtu":1350,"tti":20,"uplinkCapacity":5,"downlinkCapacity":20,"congestion":false,"readBufferSize":2,"writeBufferSize":2,"header":{"type":"none"}}}"""
+            else ->
+                """{"network":"tcp","security":"none"}"""
+        }
+    }
+
     private fun buildXrayConfigFromProfile(): String {
-        val proto = profile.protocol
-        val uuid  = profile.uuid
-        val dnsPort = DNSTT_PORT
+        val proto     = profile.protocol
+        val uuid      = profile.uuid
+        val dnsPort   = DNSTT_PORT
         val socksPort = LOCAL_SOCKS_PORT
+        val stream    = buildStreamSettings(profile.transport)
 
         val outbound = when (proto) {
-            "vmess"  -> '{"protocol":"vmess","settings":{"vnext":[{"address":"127.0.0.1","port":' + str(dnsPort) + ',"users":[{"id":"' + uuid + '","alterId":0,"security":"auto"}]}]},"streamSettings":{"network":"tcp","security":"none"}}'
-            "trojan" -> '{"protocol":"trojan","settings":{"servers":[{"address":"127.0.0.1","port":' + str(dnsPort) + ',"password":"' + uuid + '"}]},"streamSettings":{"network":"tcp","security":"none"}}'
-            else     -> '{"protocol":"vless","settings":{"vnext":[{"address":"127.0.0.1","port":' + str(dnsPort) + ',"users":[{"id":"' + uuid + '","encryption":"none"}]}]},"streamSettings":{"network":"tcp","security":"none"}}'
+            "vmess" -> """{"protocol":"vmess","settings":{"vnext":[{"address":"127.0.0.1","port":$dnsPort,"users":[{"id":"$uuid","alterId":0,"security":"auto"}]}]},"streamSettings":$stream}"""
+            "trojan" -> """{"protocol":"trojan","settings":{"servers":[{"address":"127.0.0.1","port":$dnsPort,"password":"$uuid"}]},"streamSettings":$stream}"""
+            else -> """{"protocol":"vless","settings":{"vnext":[{"address":"127.0.0.1","port":$dnsPort,"users":[{"id":"$uuid","encryption":"none"}]}]},"streamSettings":$stream}"""
         }
-        return '{"log":{"loglevel":"warning"},"inbounds":[{"port":' + str(socksPort) + ',"listen":"127.0.0.1","protocol":"socks","settings":{"udp":true}}],"outbounds":[' + outbound + ',{"protocol":"freedom","tag":"direct"}],"routing":{"rules":[]}}'
+        return """{"log":{"loglevel":"warning"},"inbounds":[{"port":$socksPort,"listen":"127.0.0.1","protocol":"socks","settings":{"udp":true}}],"outbounds":[$outbound,{"protocol":"freedom","tag":"direct"}],"routing":{"rules":[]}}"""
     }
 
     private fun extractXrayBinary(): File? {
