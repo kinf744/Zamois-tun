@@ -154,8 +154,7 @@ class XrayDnsEngine(
                     val inPort = inbound.optString("port", "0").toIntOrNull() ?: 0
                     if (listenAddr == "0.0.0.0") inbound.put("listen", "127.0.0.1")
                     if (proto == "socks") {
-                        if (inPort in 10800..10810) { _socksPort = inPort; inbound.put("listen", "127.0.0.1") }
-                        else { inbound.put("port", LOCAL_SOCKS_PORT); inbound.put("listen", "127.0.0.1") }
+                        inbound.put("port", LOCAL_SOCKS_PORT); inbound.put("listen", "127.0.0.1")
                         hasSocks = true
                     }
                     cleanedInbounds.put(inbound)
