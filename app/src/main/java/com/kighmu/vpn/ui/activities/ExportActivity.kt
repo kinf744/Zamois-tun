@@ -267,12 +267,14 @@ class ExportActivity : AppCompatActivity() {
         }.toString()
 
         val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
-        val underlyingNetwork = connectivityManager.allNetworks.firstOrNull { net ->
-            val caps = connectivityManager.getNetworkCapabilities(net)
-            caps != null &&
-            caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
-            !caps.hasTransportType(android.net.NetworkCapabilities.TRANSPORT_VPN)
-        }
+        val underlyingNetwork = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            connectivityManager.allNetworks.firstOrNull { net ->
+                val caps = connectivityManager.getNetworkCapabilities(net)
+                caps != null &&
+                caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+                !caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_NOT_VPN).not()
+            }
+        } else null
         val conn = (if (underlyingNetwork != null) {
             underlyingNetwork.openConnection(URL("https://api.github.com/gists"))
         } else {
