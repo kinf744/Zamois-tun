@@ -102,7 +102,7 @@ class XrayDnsEngine(
             "127.0.0.1:\${DNSTT_PORT}"
         )
 
-        KighmuLogger.info(TAG, "dnstt cmd: \${cmd.joinToString(" ")}")
+        KighmuLogger.info(TAG, "dnstt cmd: ${cmd.joinToString(separator = " ")}")
         val pb = ProcessBuilder(cmd).redirectErrorStream(true)
         pb.environment()["HOME"]   = context.filesDir.absolutePath
         pb.environment()["TMPDIR"] = context.cacheDir.absolutePath
