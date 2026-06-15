@@ -243,29 +243,4 @@ object XrayVpnProfileEditDialog {
         return """{"log":{"loglevel":"warning"},"inbounds":[{"port":10808,"protocol":"socks","settings":{"udp":true}}],"outbounds":[$outbound,{"protocol":"freedom","tag":"direct"}],"routing":{"rules":[]}}"""
     }
 
-    private fun buildVmessJson(
-        obj: JSONObject, transport: String, security: String,
-        sni: String, path: String, wsHost: String
-    ): String {
-        val host    = obj.optString("add", "")
-        val port    = obj.optInt("port", 443)
-        val uuid    = obj.optString("id", "")
-        val alterId = obj.optInt("aid", 0)
-        return """{"log":{"loglevel":"warning"},"inbounds":[{"port":10808,"protocol":"socks","settings":{"udp":true}}],"outbounds":[{"protocol":"vmess","settings":{"vnext":[{"address":"$host","port":$port,"users":[{"id":"$uuid","alterId":$alterId,"security":"auto"}]}]},"streamSettings":$stream,"mux":{"enabled":false}},{"protocol":"freedom","tag":"direct"}],"routing":{"rules":[]}}"""
-    }
-
-    private fun buildVlessOrTrojanJson(
-        proto: String, uuid: String, host: String, port: Int,
-        transport: String, security: String, sni: String,
-        path: String, wsHost: String, fp: String,
-        pbk: String, sid: String, flow: String
-    ): String {
-        val stream = streamSettings(transport, security, sni, path, wsHost, fp, pbk, sid)
-        val flowPart = if (flow.isNotEmpty()) ""","flow":"$flow"""" else ""
-        val outbound = when (proto) {
-            "trojan" -> """{"protocol":"trojan","settings":{"servers":[{"address":"$host","port":$port,"password":"$uuid"}]},"streamSettings":$stream,"mux":{"enabled":false}}"""
-            else     -> """{"protocol":"vless","settings":{"vnext":[{"address":"$host","port":$port,"users":[{"id":"$uuid","encryption":"none"$flowPart}]}]},"streamSettings":$stream,"mux":{"enabled":false}}"""
-        }
-        return """{"log":{"loglevel":"warning"},"inbounds":[{"port":10808,"protocol":"socks","settings":{"udp":true}}],"outbounds":[$outbound,{"protocol":"freedom","tag":"direct"}],"routing":{"rules":[]}}"""
-    }
 }
