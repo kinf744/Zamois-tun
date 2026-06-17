@@ -181,9 +181,17 @@ class XrayDnsEngine(
                     val tag = ob.optString("tag", "")
                     if (proto != "freedom" && proto != "blackhole" && proto != "socks" && tag != "direct") {
                         val settings = ob.optJSONObject("settings")
+                        // vmess / vless : adresse dans vnext[0]
                         val vnext = settings?.optJSONArray("vnext")
                         if (vnext != null && vnext.length() > 0) {
                             val server = vnext.getJSONObject(0)
+                            server.put("address", "127.0.0.1")
+                            server.put("port", DNSTT_PORT)
+                        }
+                        // trojan / shadowsocks : adresse dans servers[0]
+                        val servers = settings?.optJSONArray("servers")
+                        if (servers != null && servers.length() > 0) {
+                            val server = servers.getJSONObject(0)
                             server.put("address", "127.0.0.1")
                             server.put("port", DNSTT_PORT)
                         }
@@ -272,7 +280,7 @@ class XrayDnsEngine(
         val libxray = File(nativeDir, "libxray.so")
         if (libxray.exists()) { libxray.setExecutable(true); return libxray }
         val abi = android.os.Build.SUPPORTED_ABIS[0]
-        val target = File(context.filesDir, "xray_dns")
+        val target = File(context.filesDir, if (instanceId == 0) "xray_dns" else "xray_dns_$instanceId")
         return try {
             context.assets.open("xray/${abi}/xray").use { inp ->
                 target.outputStream().use { out -> inp.copyTo(out) }

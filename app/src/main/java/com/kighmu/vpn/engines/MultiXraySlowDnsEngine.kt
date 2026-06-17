@@ -53,7 +53,7 @@ class MultiXraySlowDnsEngine(
             synchronized(dnsttEngines) { dnsttEngines.add(dnstt) }
             val port = dnstt.startDnsttOnly()
             val defaultProfile = com.kighmu.vpn.profiles.XrayDnsProfile(
-                        xrayJsonConfig = baseConfig.xray.getActiveJson(),
+                        xrayJsonConfig = baseConfig.xray.jsonConfig.ifBlank { "" },
                         protocol       = baseConfig.xray.protocol,
                         serverAddress  = baseConfig.xray.serverAddress,
                         serverPort     = baseConfig.xray.serverPort,
@@ -175,7 +175,7 @@ class MultiXraySlowDnsEngine(
             scope.async {
                 KighmuLogger.info(TAG, "XrayEngine[${result.idx}] démarrage sur dnsttPort=${result.port}")
                 val xrayProfile = com.kighmu.vpn.profiles.XrayDnsProfile(
-                        xrayJsonConfig = result.flux.xrayCfg.xray.getActiveJson(),
+                        xrayJsonConfig = result.flux.xrayCfg.xray.jsonConfig.ifBlank { "" },
                         protocol       = result.flux.xrayCfg.xray.protocol,
                         serverAddress  = result.flux.xrayCfg.xray.serverAddress,
                         serverPort     = result.flux.xrayCfg.xray.serverPort,
@@ -253,7 +253,7 @@ class MultiXraySlowDnsEngine(
                                 return@launch
                             }
                             val newXrayProfile = com.kighmu.vpn.profiles.XrayDnsProfile(
-                        xrayJsonConfig = flux.xrayCfg.xray.getActiveJson(),
+                        xrayJsonConfig = flux.xrayCfg.xray.jsonConfig.ifBlank { "" },
                         protocol       = flux.xrayCfg.xray.protocol,
                         serverAddress  = flux.xrayCfg.xray.serverAddress,
                         serverPort     = flux.xrayCfg.xray.serverPort,
