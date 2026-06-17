@@ -104,7 +104,8 @@ class SocksBalancer(
 
     private fun connectToPort(targetPort: Int): Socket {
         val server = Socket()
-        try { vpnService?.protect(server) } catch (_: Exception) {}
+        // NE PAS proteger les connexions vers 127.0.0.1 - elles sont locales
+        // vpnService.protect() est uniquement pour les connexions vers serveurs externes
         server.receiveBufferSize = PIPE_BUFFER_SIZE
         server.sendBufferSize    = PIPE_BUFFER_SIZE
         server.tcpNoDelay = true
