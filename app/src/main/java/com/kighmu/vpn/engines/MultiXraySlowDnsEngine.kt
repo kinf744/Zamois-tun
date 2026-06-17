@@ -279,12 +279,15 @@ class MultiXraySlowDnsEngine(
                                 synchronized(dnsttEngines) {
                                     if (idx < dnsttEngines.size) dnsttEngines[idx] = newDnstt
                                 }
-                                val alivePorts = synchronized(xrayEngines) {
-                                    xrayEngines.mapIndexedNotNull { i, e ->
-                                        if (e.isRunning()) activePorts.getOrNull(i) else null
+                                val updatedPorts = mutableListOf<Int>()
+                                synchronized(xrayEngines) {
+                                    xrayEngines.forEach { e ->
+                                        val p = e.getSocksPort()
+                                        if (e.isRunning() && p > 0) updatedPorts.add(p)
                                     }
                                 }
-                                if (alivePorts.isNotEmpty()) socksBalancer?.updatePorts(alivePorts)
+                                activePorts = updatedPorts
+                                if (updatedPorts.isNotEmpty()) socksBalancer?.updatePorts(updatedPorts)
                                 KighmuLogger.info(TAG, "XrayEngine[$idx] warm replacement OK port=$newPort")
                                 try { oldXray?.stop() } catch (_: Exception) {}
                             } else {
