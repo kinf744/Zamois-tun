@@ -14,10 +14,24 @@ object XrayDnsEngineFactory {
         context: Context,
         vpnService: VpnService? = null
     ): TunnelEngine {
-        val repo = XrayDnsProfileRepository(context)
+        val repo     = XrayDnsProfileRepository(context)
         val selected = repo.getSelected()
-        val profile = selected.firstOrNull() ?: repo.getAll().firstOrNull()
+        val all      = repo.getAll()
+
+        // Multi-profil ou tunnelCount > 1 -> MultiXraySlowDnsEngine
+        val needsMulti = selected.size > 1 ||
+            (selected.size == 1 && selected[0].tunnelCount > 1) ||
+            (selected.isEmpty() && all.size > 1)
+
+        if (needsMulti) {
+            KighmuLogger.info("XrayDnsEngineFactory", "Mode multi-profil -> MultiXraySlowDnsEngine (${selected.size} profils selectionnes)")
+            return MultiXraySlowDnsEngine(config, context, vpnService)
+        }
+
+        // Single profil
+        val profile = selected.firstOrNull() ?: all.firstOrNull()
             ?: buildProfileFromConfig(config)
+        KighmuLogger.info("XrayDnsEngineFactory", "Mode single-profil -> XrayDnsEngineWrapper (${profile.profileName})")
         return XrayDnsEngineWrapper(context, profile, vpnService)
     }
 
