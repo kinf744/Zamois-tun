@@ -140,7 +140,7 @@ class MultiXraySlowDnsEngine(
             KighmuLogger.info(TAG, "Flux[${idx+1}/$totalFlux] dnstt démarrage: ${flux.label}")
             var port    = -1
             var attempt = 0
-            val engine  = SlowDnsEngine(flux.dnsCfg, context, vpnService, idx)
+            val engine  = SlowDnsEngine(flux.dnsCfg, context, null, idx)
 
             while (attempt < MAX_RETRIES && port <= 0) {
                 attempt++
@@ -243,7 +243,7 @@ class MultiXraySlowDnsEngine(
                         replacingCount++
                         try {
                             val flux = synchronized(fluxConfigs) { fluxConfigs.getOrNull(idx) } ?: return@launch
-                            val newDnstt = SlowDnsEngine(flux.dnsCfg, context, vpnService, idx)
+                            val newDnstt = SlowDnsEngine(flux.dnsCfg, context, null, idx)
                             val newDnsttPort = withTimeoutOrNull(DNSTT_TIMEOUT_MS) {
                                 newDnstt.startDnsttOnly()
                             } ?: -1
@@ -336,7 +336,7 @@ class MultiXraySlowDnsEngine(
             } else {
                 val targetPort = ports.firstOrNull() ?: (if (balancerPort > 0) balancerPort else SocksBalancer.BALANCER_PORT)
                 KighmuLogger.info(TAG, "hev V2ray+DNS -> single SOCKS port=$targetPort")
-                HevTun2Socks.start(context, fd, targetPort, svc, mtu = 8500)
+                HevTun2Socks.start(context, fd, targetPort, svc)
             }
         } else {
             xrayEngines.firstOrNull()?.startTun2Socks(fd)
