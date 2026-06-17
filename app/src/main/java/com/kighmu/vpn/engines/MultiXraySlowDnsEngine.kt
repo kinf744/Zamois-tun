@@ -41,6 +41,7 @@ class MultiXraySlowDnsEngine(
     private var socksBalancer: SocksBalancer? = null
     @Volatile private var replacingCount = 0
     private val fluxConfigs = mutableListOf<FluxConfig>()
+    @Volatile private var balancerPort: Int = 0  // Port reel du balancier pour cette instance
 
     override suspend fun start(): Int {
         val repo     = XrayDnsProfileRepository(context)
@@ -222,6 +223,7 @@ class MultiXraySlowDnsEngine(
         socksBalancer = balancer
         activePorts   = xraySocksPorts
         val finalPort = SocksBalancer.BALANCER_PORT
+        balancerPort  = finalPort  // Sauvegarder port de cette instance
 
         KighmuLogger.info(TAG, "=== V2ray+DNS prêt - balancer=$finalPort, ${xraySocksPorts.size} tunnel(s) actif(s) ===")
         monitorSessions()
@@ -326,9 +328,9 @@ class MultiXraySlowDnsEngine(
             return
         }
         if (HevTun2Socks.isAvailable) {
-            val targetPort = SocksBalancer.BALANCER_PORT
+            val targetPort = if (balancerPort > 0) balancerPort else SocksBalancer.BALANCER_PORT
             KighmuLogger.info(TAG, "hev V2ray+DNS -> balancer:$targetPort (${activePorts.size} tunnel(s))")
-            HevTun2Socks.start(context, fd, targetPort, svc)
+            HevTun2Socks.start(context, fd, targetPort, svc, mtu = 8500)
         } else {
             xrayEngines.firstOrNull()?.startTun2Socks(fd)
         }
