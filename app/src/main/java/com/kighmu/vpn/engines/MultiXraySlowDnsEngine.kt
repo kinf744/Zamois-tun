@@ -328,9 +328,16 @@ class MultiXraySlowDnsEngine(
             return
         }
         if (HevTun2Socks.isAvailable) {
-            val targetPort = if (balancerPort > 0) balancerPort else SocksBalancer.BALANCER_PORT
-            KighmuLogger.info(TAG, "hev V2ray+DNS -> balancer:$targetPort (${activePorts.size} tunnel(s))")
-            HevTun2Socks.start(context, fd, targetPort, svc, mtu = 8500)
+            val ports = activePorts.filter { it > 0 }
+            if (ports.size > 1) {
+                // Multi-SOCKS natif dans hev - plus fiable que le balancier Kotlin
+                KighmuLogger.info(TAG, "hev V2ray+DNS -> multi-SOCKS natif ports=$ports")
+                HevTun2Socks.startMulti(context, fd, ports, svc, mtu = 8500)
+            } else {
+                val targetPort = ports.firstOrNull() ?: (if (balancerPort > 0) balancerPort else SocksBalancer.BALANCER_PORT)
+                KighmuLogger.info(TAG, "hev V2ray+DNS -> single SOCKS port=$targetPort")
+                HevTun2Socks.start(context, fd, targetPort, svc, mtu = 8500)
+            }
         } else {
             xrayEngines.firstOrNull()?.startTun2Socks(fd)
         }
