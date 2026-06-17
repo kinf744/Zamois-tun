@@ -12,7 +12,8 @@ class XrayDnsEngine(
     private val context: Context,
     private val profile: XrayDnsProfile,
     private val vpnService: VpnService? = null,
-    private val instanceId: Int = 0
+    private val instanceId: Int = 0,
+    private val externalDnsttPort: Int = 0
 ) {
     companion object {
         const val TAG = "XrayDnsEngine"
@@ -27,7 +28,7 @@ class XrayDnsEngine(
 
     private var _dnsttPort: Int = 0
     private val DNSTT_PORT: Int get() {
-        if (_dnsttPort == 0) _dnsttPort = getFreePort()
+        if (_dnsttPort == 0) _dnsttPort = if (externalDnsttPort > 0) externalDnsttPort else getFreePort()
         return _dnsttPort
     }
 
@@ -49,24 +50,27 @@ class XrayDnsEngine(
         running = true
         KighmuLogger.info(TAG, "Demarrage XrayDnsEngine (Mode 5)...")
         withContext(Dispatchers.IO) {
-            if (profile.nameserver.isBlank()) throw Exception("Nameserver manquant")
-            if (cleanPublicKey.isBlank()) throw Exception("Public Key manquante")
-
-            startDnsttProcess()
-
-            var dnsttReady = false
-            var waited = 0
-            while (waited < 8000) {
-                delay(200); waited += 200
-                try {
-                    val s = Socket()
-                    s.connect(InetSocketAddress("127.0.0.1", DNSTT_PORT), 100)
-                    s.close(); dnsttReady = true
-                    KighmuLogger.info(TAG, "dnstt pret en ${waited}ms sur port ${DNSTT_PORT}")
-                    break
-                } catch (_: Exception) {}
+            if (externalDnsttPort > 0) {
+                _dnsttPort = externalDnsttPort
+                KighmuLogger.info(TAG, "dnstt externe utilise port=$externalDnsttPort (skip dnstt interne)")
+            } else {
+                if (profile.nameserver.isBlank()) throw Exception("Nameserver manquant")
+                if (cleanPublicKey.isBlank()) throw Exception("Public Key manquante")
+                startDnsttProcess()
+                var dnsttReady = false
+                var waited = 0
+                while (waited < 8000) {
+                    delay(200); waited += 200
+                    try {
+                        val s = Socket()
+                        s.connect(InetSocketAddress("127.0.0.1", DNSTT_PORT), 100)
+                        s.close(); dnsttReady = true
+                        KighmuLogger.info(TAG, "dnstt pret en ${waited}ms sur port ${DNSTT_PORT}")
+                        break
+                    } catch (_: Exception) {}
+                }
+                if (!dnsttReady) throw Exception("dnstt n'a pas demarre dans les temps")
             }
-            if (!dnsttReady) throw Exception("dnstt n'a pas demarre dans les temps")
 
             val configFile = writeXrayConfig()
             val binary = extractXrayBinary() ?: throw Exception("libxray.so introuvable")
@@ -88,7 +92,6 @@ class XrayDnsEngine(
         KighmuLogger.info(TAG, "XrayDnsEngine pret sur port ${LOCAL_SOCKS_PORT} ✅")
         return LOCAL_SOCKS_PORT
     }
-
     private fun startDnsttProcess() {
         val nativeDir = context.applicationInfo.nativeLibraryDir
         val bin = File(nativeDir, "libdnstt.so")
@@ -353,10 +356,13 @@ class XrayDnsEngine(
             }
         } catch (_: Exception) {}
         xrayProcess = null
-        try { dnsttProcess?.destroyForcibly(); dnsttProcess?.destroy() } catch (_: Exception) {}
-        try { Runtime.getRuntime().exec(arrayOf("sh", "-c", "fuser -k ${_dnsttPort}/tcp 2>/dev/null")) } catch (_: Exception) {}
-        try { Runtime.getRuntime().exec(arrayOf("sh", "-c", "fuser -k ${_dnsttPort}/udp 2>/dev/null")) } catch (_: Exception) {}
-        dnsttProcess = null
+        // Ne pas tuer dnstt si gere exterieurement par MultiXraySlowDnsEngine
+        if (externalDnsttPort <= 0) {
+            try { dnsttProcess?.destroyForcibly(); dnsttProcess?.destroy() } catch (_: Exception) {}
+            try { Runtime.getRuntime().exec(arrayOf("sh", "-c", "fuser -k ${_dnsttPort}/tcp 2>/dev/null")) } catch (_: Exception) {}
+            try { Runtime.getRuntime().exec(arrayOf("sh", "-c", "fuser -k ${_dnsttPort}/udp 2>/dev/null")) } catch (_: Exception) {}
+            dnsttProcess = null
+        }
         _socksPort = 0
         _dnsttPort = 0
         try { HevTun2Socks.stop() } catch (_: Exception) {}

@@ -69,7 +69,7 @@ class MultiXraySlowDnsEngine(
                         nameserver     = baseConfig.slowDns.nameserver,
                         publicKey      = baseConfig.slowDns.publicKey
                     )
-                    val xray = XrayDnsEngine(context, defaultProfile, vpnService, 0)
+                    val xray = XrayDnsEngine(context, defaultProfile, vpnService, 0, port)
             synchronized(xrayEngines) { xrayEngines.add(xray) }
             activePorts = listOf(port)
             return xray.start()
@@ -191,7 +191,7 @@ class MultiXraySlowDnsEngine(
                         nameserver     = result.flux.dnsCfg.slowDns.nameserver,
                         publicKey      = result.flux.dnsCfg.slowDns.publicKey
                     )
-                    val xrayEngine = XrayDnsEngine(context, xrayProfile, vpnService, result.idx)
+                    val xrayEngine = XrayDnsEngine(context, xrayProfile, vpnService, result.idx, result.port)
                 try {
                     val socksPort = withTimeoutOrNull(XRAY_TIMEOUT_MS) { xrayEngine.start() } ?: -1
                     if (socksPort > 0) {
@@ -268,7 +268,7 @@ class MultiXraySlowDnsEngine(
                         nameserver     = flux.dnsCfg.slowDns.nameserver,
                         publicKey      = flux.dnsCfg.slowDns.publicKey
                     )
-                        val newXray = XrayDnsEngine(context, newXrayProfile, vpnService, idx)
+                        val newXray = XrayDnsEngine(context, newXrayProfile, vpnService, idx, newDnsttPort)
                             val newPort = withTimeoutOrNull(XRAY_TIMEOUT_MS) { newXray.start() } ?: -1
                             if (newPort > 0) {
                                 val oldXray = synchronized(xrayEngines) {
