@@ -1,0 +1,16 @@
+792e5bc65945453e35e09c3a10979ba4d5cfe1f3 commit	refs/heads/backup-main
+5555295f60682a204a5c5d83f9f6c0f9d8be2a8e commit	refs/heads/clean-main
+cfd3ad26d98963d7780b149ab2980f5ff2aae937 commit	refs/heads/main
+3d63757e3d4b541ae05215ba3937527d4413f988 commit	refs/heads/main-stable
+8eaa4201141a8394e6c0f7f502f9c51146e3cfe2 commit	refs/original/refs/heads/main
+c8667cb5fd914b36a61c9d764b3dd5835634a39a commit	refs/original/refs/remotes/origin/main
+835dde54f90584fd3808fdb553a73d0b2c34be0f commit	refs/remotes/origin/HEAD
+5555295f60682a204a5c5d83f9f6c0f9d8be2a8e commit	refs/remotes/origin/clean-main
+93f31316abcd6b4e18ece457c25002ece4d1fc7b commit	refs/remotes/origin/cloud-configs
+b3da5c9d7bf75c81216fc830ad1c5f6579d714fc commit	refs/remotes/origin/fix-hysteria-793
+2a2bff1d7ef2c61240f28b1d567a286c86513851 commit	refs/remotes/origin/fix/zivpn
+835dde54f90584fd3808fdb553a73d0b2c34be0f commit	refs/remotes/origin/main
+bd2678bad137781a3e48ce051d1fe22515c384c9 commit	refs/tags/acm-analysis
+60c649a4d55fc301e490a57e7b6f9b079281a54b commit	refs/tags/hev-ratelimit-3
+b37611501b23e89f615954588888e0486cf25650 commit	refs/tags/hev-ratelimit-4
+958c64c0ee21c614fc32458f26829f349bea0d01 commit	refs/tags/v1.0-binary
