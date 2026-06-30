@@ -168,7 +168,7 @@ class MultiZivpnEngine(
         }
         // 4. Nettoyage nucleaire natif
         try { Runtime.getRuntime().exec(arrayOf("sh", "-c",
-            "killall -9 libuz_core.so libload_core.so libxray.so 2>/dev/null; pkill -9 -f libuz_core 2>/dev/null; pkill -9 -f libload_core 2>/dev/null"
+            "killall -9 libuz_core.so libxray.so 2>/dev/null; pkill -9 -f libuz_core 2>/dev/null"
         )) } catch (_: Exception) {}
         scope.cancel()
         KighmuLogger.info(TAG, "MultiZivpnEngine arrete")

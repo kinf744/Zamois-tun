@@ -427,8 +427,8 @@ class KighmuVpnService : VpnService() {
                     withTimeoutOrNull(4000L) { engineRef?.stop() }
                     try {
                         val p = Runtime.getRuntime().exec(arrayOf("sh", "-c",
-                            "killall -9 libuz_core.so libload_core.so libxray.so 2>/dev/null; " +
-                            "pkill -9 -f libuz_core 2>/dev/null; pkill -9 -f libload_core 2>/dev/null; " +
+                            "killall -9 libuz_core.so libxray.so 2>/dev/null; " +
+                            "pkill -9 -f libuz_core 2>/dev/null; " +
                             "sleep 1"
                         ))
                         p.waitFor(3, java.util.concurrent.TimeUnit.SECONDS)
@@ -444,7 +444,7 @@ class KighmuVpnService : VpnService() {
                 } else {
                     withTimeoutOrNull(3000L) { engineRef?.stop() }
                     try { Runtime.getRuntime().exec(arrayOf("sh", "-c",
-                        "killall -9 libtun2socks.so xray hysteria libhysteria.so dnstt libdnstt.so libuz_core.so libload_core.so"
+                        "killall -9 libtun2socks.so xray hysteria libhysteria.so dnstt libdnstt.so libuz_core.so"
                     )) } catch (_: Exception) {}
                     try { Runtime.getRuntime().exec(arrayOf("sh", "-c",
                         "pkill -9 -f dnstt"

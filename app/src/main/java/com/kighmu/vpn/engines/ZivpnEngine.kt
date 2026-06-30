@@ -8,6 +8,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import kotlinx.coroutines.delay
+import java.io.InputStream
+import java.io.OutputStream
+import java.net.ServerSocket
+import java.net.Socket
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.Executors
 
 class ZivpnEngine(
     private val config: KighmuConfig,
@@ -32,6 +38,8 @@ class ZivpnEngine(
     private var uzProcesses: MutableList<Process> = mutableListOf()
     private var lbProcess: Process? = null
     var xrayProcess: Process? = null
+    private var balancerThread: Thread? = null
+    private var balancerServerSocket: ServerSocket? = null
     private var resolvedServerIp: String = ""
     @Volatile private var authErrorCount = 0
     @Volatile private var serverErrorCount = 0
@@ -72,7 +80,6 @@ class ZivpnEngine(
             
 
             val libuzCore   = File(nativeDir, "libuz_core.so")
-            val libloadCore = File(nativeDir, "libload_core.so")
             val libxray     = File(nativeDir, "libxray.so")
 
             
@@ -155,13 +162,26 @@ class ZivpnEngine(
                     log("Secure arrêté (code=$code)")
                 } catch (_: Exception) {}
             }.apply { isDaemon = true }.start()
-            Thread.sleep(1200)
+            // Attente active : Xray prêt dès que le port répond (max 3s)
+            var xrayReady = false
+            var xrayWaited = 0
+            while (xrayWaited < 3000) {
+                val alive = try { xrayProcess?.isAlive ?: false } catch (_: Exception) { false }
+                if (!alive) break
+                val portUp = try {
+                    java.net.Socket("127.0.0.1", clashPort).also { it.close() }; true
+                } catch (_: Exception) { false }
+                if (portUp) { xrayReady = true; break }
+                Thread.sleep(50)
+                xrayWaited += 50
+            }
             val xrayAlive = try { xrayProcess?.isAlive ?: false } catch (_: Exception) { false }
-            if (!xrayAlive) {
+            if (!xrayAlive || !xrayReady) {
                 val code = try { xrayProcess?.exitValue() } catch (_: Exception) { -999 }
                 log("Erreur Xray (code=$code)")
                 throw IllegalStateException("Proxy Xray arrêté au démarrage")
             }
+            log("Xray prêt en ${xrayWaited}ms")
         } catch (e: Exception) {
             log("Erreur Xray: ${e.message}")
             throw e
@@ -284,9 +304,19 @@ class ZivpnEngine(
                 val code = try { proc.exitValue() } catch (_: Exception) { null }
                 if (code != null) KighmuLogger.warning(TAG, "Processus UDP terminé (code=$code)")
             }.apply { isDaemon = true }.start()
-            Thread.sleep(500)
+            // Attente active uz_core (max 2s)
+            var uzWaited = 0
+            while (uzWaited < 2000) {
+                val alive = try { proc.isAlive } catch (_: Exception) { false }
+                if (!alive) break
+                val portUp = try {
+                    java.net.Socket("127.0.0.1", uzPort).also { it.close() }; true
+                } catch (_: Exception) { false }
+                if (portUp) break
+                Thread.sleep(50)
+                uzWaited += 50
+            }
             val uzAlive = try { proc.isAlive } catch (_: Exception) { false }
-            
             if (!uzAlive) {
                 val code = try { proc.exitValue() } catch (_: Exception) { -999 }
                 KighmuLogger.warning(TAG, "Canal UDP ${index+1} arrêté (code=$code)")
@@ -298,52 +328,101 @@ class ZivpnEngine(
 
     private fun launchLbCore() {
         try {
-            Thread.sleep(1000)
-            val nativeDir = context.applicationInfo.nativeLibraryDir
-            val lbBin = File(nativeDir, "libload_core.so")
-            if (!lbBin.exists()) {
-                KighmuLogger.warning(TAG, "Composant balanceur introuvable")
+            Thread.sleep(200)
+            stopKotlinBalancer()
+
+            val upstreamCount = uzProcesses.size
+            if (upstreamCount == 0) {
+                KighmuLogger.warning(TAG, "Aucun upstream uz_core disponible")
                 return
             }
-            try { lbProcess?.destroyForcibly() } catch (_: Exception) {}
-            val lbArgs = mutableListOf(lbBin.absolutePath, "-lport", "$LB_PORT", "-tunnel")
-            uzProcesses.indices.forEach { i ->
-                lbArgs.add("127.0.0.1:${BASE_UZ_PORT + i}")
+
+            val upstreams = (0 until upstreamCount).map { i ->
+                Pair("127.0.0.1", BASE_UZ_PORT + i)
             }
-            
-            val lbPb = ProcessBuilder(lbArgs)
-                .directory(context.filesDir)
-                .apply {
-                    environment()["LD_LIBRARY_PATH"] = nativeDir
-                    environment()["HOME"] = context.filesDir.absolutePath
-                    redirectErrorStream(true)
+            val counter = java.util.concurrent.atomic.AtomicInteger(0)
+            val executor = java.util.concurrent.Executors.newCachedThreadPool()
+
+            val ss = java.net.ServerSocket(LB_PORT, 128,
+                java.net.InetAddress.getByName("127.0.0.1"))
+            ss.reuseAddress = true
+            balancerServerSocket = ss
+
+            balancerThread = Thread {
+                log("Balanceur Kotlin sur port $LB_PORT (${upstreams.size} upstreams)")
+                while (!Thread.currentThread().isInterrupted && !ss.isClosed) {
+                    try {
+                        val client = ss.accept()
+                        executor.submit {
+                            val idx = counter.getAndIncrement() % upstreams.size
+                            val (upHost, upPort) = upstreams[idx]
+                            try {
+                                val upstream = java.net.Socket(upHost, upPort)
+                                upstream.tcpNoDelay = true
+                                client.tcpNoDelay = true
+                                val t1 = Thread {
+                                    try { relay(client.inputStream, upstream.outputStream) } catch (_: Exception) {}
+                                    try { upstream.close() } catch (_: Exception) {}
+                                }.apply { isDaemon = true }
+                                val t2 = Thread {
+                                    try { relay(upstream.inputStream, client.outputStream) } catch (_: Exception) {}
+                                    try { client.close() } catch (_: Exception) {}
+                                }.apply { isDaemon = true }
+                                t1.start(); t2.start()
+                            } catch (_: Exception) {
+                                try { client.close() } catch (_: Exception) {}
+                            }
+                        }
+                    } catch (_: Exception) { break }
                 }
-            lbProcess = lbPb.start()
-            log("Balanceur UDP démarré")
-            Thread {
-                try {
-                    lbProcess?.inputStream?.bufferedReader()?.forEachLine { line ->
-                        
-                    }
-                } catch (_: Exception) {}
-            }.apply { isDaemon = true }.start()
-            Thread.sleep(800)
-            val lbAlive = try { lbProcess?.isAlive ?: false } catch (_: Exception) { false }
-            val lbOk = try { java.net.Socket("127.0.0.1", LB_PORT).also { it.close() }; true } catch (_: Exception) { false }
-            
+                executor.shutdownNow()
+                log("Balanceur Kotlin arrêté")
+            }.apply { isDaemon = true; name = "kighmu-lb" }
+            balancerThread!!.start()
+
+            // Attente active balanceur (max 1s)
+            var lbWaited = 0
+            var lbOk = false
+            while (lbWaited < 1000) {
+                lbOk = try {
+                    java.net.Socket("127.0.0.1", LB_PORT).also { it.close() }; true
+                } catch (_: Exception) { false }
+                if (lbOk) break
+                Thread.sleep(30)
+                lbWaited += 30
+            }
+            if (lbOk) log("Balanceur Kotlin opérationnel en ${lbWaited}ms")
+            else KighmuLogger.warning(TAG, "Balanceur Kotlin non prêt")
+
         } catch (e: Exception) {
-            KighmuLogger.error(TAG, "Erreur balanceur: ${e.message}")
+            KighmuLogger.error(TAG, "Erreur balanceur Kotlin: ${e.message}")
         }
     }
+
+    private fun relay(input: java.io.InputStream, output: java.io.OutputStream) {
+        val buf = ByteArray(8192)
+        var n: Int
+        while (input.read(buf).also { n = it } != -1) {
+            output.write(buf, 0, n)
+            output.flush()
+        }
+    }
+
+    private fun stopKotlinBalancer() {
+        try { balancerServerSocket?.close(); balancerServerSocket = null } catch (_: Exception) {}
+        try { balancerThread?.interrupt(); balancerThread = null } catch (_: Exception) {}
+    }
+
 
 
     fun softRestart() {
         val xrayAlive = try { xrayProcess?.isAlive ?: false } catch (_: Exception) { false }
         if (!xrayAlive) return // Xray mort, softRestart impossible
         try { lbProcess?.destroyForcibly(); lbProcess = null } catch (_: Exception) {}
+        stopKotlinBalancer()
         uzProcesses.forEach { try { it.destroyForcibly() } catch (_: Exception) {} }
         uzProcesses.clear()
-        Thread.sleep(300)
+        Thread.sleep(100)
         launchUzCore()
         serverConnected = true
         running = true
@@ -359,11 +438,12 @@ class ZivpnEngine(
         // Tuer tous les processus immédiatement sans attendre
         try { xrayProcess?.destroyForcibly(); xrayProcess = null } catch (_: Exception) {}
         try { lbProcess?.destroyForcibly(); lbProcess = null } catch (_: Exception) {}
+        stopKotlinBalancer()
         uzProcesses.forEach { try { it.destroyForcibly() } catch (_: Exception) {} }
         uzProcesses.clear()
         // Nettoyage nucléaire natif — fire and forget
         try { Runtime.getRuntime().exec(arrayOf("sh", "-c",
-            "killall -9 libuz_core.so libload_core.so libxray.so 2>/dev/null; pkill -9 -f libuz_core 2>/dev/null; pkill -9 -f libload_core 2>/dev/null"
+            "killall -9 libuz_core.so libxray.so 2>/dev/null; pkill -9 -f libuz_core 2>/dev/null"
         )) } catch (_: Exception) {}
         log("Tunnel UDP arrêté")
     }
