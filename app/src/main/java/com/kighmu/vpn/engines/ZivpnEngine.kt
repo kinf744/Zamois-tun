@@ -181,7 +181,6 @@ class ZivpnEngine(
                 log("Erreur Xray (code=$code)")
                 throw IllegalStateException("Proxy Xray arrêté au démarrage")
             }
-            log("Xray prêt en ${xrayWaited}ms")
         } catch (e: Exception) {
             log("Erreur Xray: ${e.message}")
             throw e
