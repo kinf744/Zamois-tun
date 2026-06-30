@@ -204,20 +204,7 @@ class SlowDnsEngine(
             dns.nameserver,
             "127.0.0.1:$dnsttPort"
         )
-                // Log détaillé pour debug
-        try {
-            val f = java.io.File(android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS), "kighmu_key.txt")
-            f.writeText(buildString {
-                appendLine("=== DNSTT DEBUG ===")
-                appendLine("time: ${java.util.Date()}")
-                appendLine("pubkey raw: '${dns.publicKey}'")
-                appendLine("pubkey clean: '${cleanPublicKey}'")
-                appendLine("pubkey length: ${cleanPublicKey.length}")
-                appendLine("nameserver: '${dns.nameserver}'")
-                appendLine("dnsServer: '${dns.dnsServer}:${dns.dnsPort}'")
-                appendLine("cmd: ${cmd.joinToString(" ")}")
-            })
-        } catch (_: Exception) {}
+
 
         val pb = ProcessBuilder(cmd).redirectErrorStream(true)
         pb.environment()["HOME"]   = context.filesDir.absolutePath
@@ -230,29 +217,37 @@ class SlowDnsEngine(
         Thread {
             try {
                 process.inputStream.bufferedReader().forEachLine { line ->
-                    val skipDnstt = line.contains("begin stream") ||
-                        line.contains("opening stream") ||
-                        line.contains("handle: session") ||
-                        line.contains("closing stream") ||
-                        line.contains("stream timeout") ||
-                        line.contains("retransmit") ||
-                        line.contains("recv window") ||
-                        line.contains("send window") ||
-                        line.contains("keepalive") ||
-                            line.contains("end stream") ||
-                            line.contains("network is unreachable") ||
-                            line.contains("sendto:") ||
-                            line.contains("write udp") ||
-                            line.contains("accepted") ||
-                            line.contains("connection reset") ||
-                            line.contains("broken pipe") ||
-                            line.contains("copy stream") ||
-                            line.contains("copy local") ||
-                            line.contains("EOF")
-                    if (running && !skipDnstt) KighmuLogger.info(TAG, "dnstt: $line")
+                    val lower = line.lowercase()
+                    val skip = lower.contains("begin stream") ||
+                        lower.contains("opening stream") ||
+                        lower.contains("handle: session") ||
+                        lower.contains("closing stream") ||
+                        lower.contains("stream timeout") ||
+                        lower.contains("retransmit") ||
+                        lower.contains("recv window") ||
+                        lower.contains("send window") ||
+                        lower.contains("keepalive") ||
+                        lower.contains("end stream") ||
+                        lower.contains("network is unreachable") ||
+                        lower.contains("sendto:") ||
+                        lower.contains("write udp") ||
+                        lower.contains("read udp") ||
+                        lower.contains("accepted") ||
+                        lower.contains("connection reset") ||
+                        lower.contains("broken pipe") ||
+                        lower.contains("copy stream") ||
+                        lower.contains("copy local") ||
+                        lower.contains("eof") ||
+                        lower.contains("i/o timeout") ||
+                        lower.contains("use of closed") ||
+                        lower.contains("poll") ||
+                        lower.contains("debug") ||
+                        lower.contains("trace") ||
+                        line.isBlank()
+                    if (running && !skip) KighmuLogger.info(TAG, "dnstt: $line")
                 }
             } catch (e: Exception) {
-                if (running) KighmuLogger.error(TAG, "dnstt stdout: ${e.message}")
+                if (running) KighmuLogger.warning(TAG, "dnstt stdout: ${e.message}")
             }
         }.start()
 
@@ -307,7 +302,7 @@ class SlowDnsEngine(
                 t1.start(); t2.start()
             } catch (e: Exception) {
                 bannerLatch.countDown()
-                KighmuLogger.error(TAG, "BannerProxy error: ${e.message}")
+                KighmuLogger.warning(TAG, "BannerProxy error: ${e.message}")
             }
         }.also { it.isDaemon = true }.start()
         bannerLatch.await(3, java.util.concurrent.TimeUnit.SECONDS)
@@ -396,12 +391,12 @@ class SlowDnsEngine(
                 try {
                     val ok = withTimeoutOrNull(5_000) { conn.sendIgnorePacket(); true } ?: false
                     if (!ok) {
-                        KighmuLogger.error(TAG, "Keep-alive timeout → tunnel mort, marquage sshAlive=false")
+                        KighmuLogger.warning(TAG, "Tunnel SSH inactif")
                         sshAlive = false
                         keepAliveRunning = false
                     }
                 } catch (e: Exception) {
-                    KighmuLogger.error(TAG, "Keep-alive erreur → tunnel mort: ${e.message}")
+                    KighmuLogger.warning(TAG, "Tunnel SSH déconnecté")
                     sshAlive = false
                     keepAliveRunning = false
                 }
@@ -425,9 +420,9 @@ class SlowDnsEngine(
                 } catch (_: Exception) { false }
                 if (!alive) {
                     dnsttFailCount++
-                    KighmuLogger.error(TAG, "dnstt health check échoué ($dnsttFailCount/2)")
+                    KighmuLogger.warning(TAG, "dnstt instable ($dnsttFailCount/2)")
                     if (dnsttFailCount >= 2) {
-                        KighmuLogger.error(TAG, "dnstt mort détecté → isDegraded=true")
+                        KighmuLogger.warning(TAG, "dnstt arrêté, reconnexion...")
                         isDegraded = true
                         break
                     }

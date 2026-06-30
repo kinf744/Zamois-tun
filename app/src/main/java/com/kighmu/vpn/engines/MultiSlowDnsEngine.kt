@@ -39,7 +39,6 @@ class MultiSlowDnsEngine(
         }
 
         // Nettoyer les engines précédents avant de relancer (évite "address already in use")
-        KighmuLogger.info(TAG, "Nettoyage engines précédents (${engines.size})...")
         synchronized(engines) {
             engines.forEach { e ->
                 // Utilisation de runBlocking pour forcer l'arrêt synchrone avant de continuer
@@ -64,7 +63,7 @@ class MultiSlowDnsEngine(
 
         // Calcul du total de flux (profils × tunnelCount chacun)
         val totalFlux = selected.sumOf { it.tunnelCount.coerceIn(1, 4) }
-        KighmuLogger.info(TAG, "=== STEP 1: Connexion séquentielle $totalFlux flux (${selected.size} profil(s)) ===")
+        KighmuLogger.info(TAG, "Connexion $totalFlux flux (${selected.size} profil(s))")
 
         // STEP 1 : Connexion séquentielle avec retry agressif par session
         val results = mutableListOf<Pair<Int, Int>>()
@@ -92,7 +91,6 @@ class MultiSlowDnsEngine(
                         delay(RETRY_DELAY_MS)
                     }
                     port = try {
-                        KighmuLogger.info(TAG, "Session[${globalIdx+1}] tentative $attempt/$MAX_RETRIES: $sessionLabel")
                         withTimeoutOrNull(SESSION_TIMEOUT_MS) { activeEngine.start() } ?: -1
                     } catch (e: Exception) {
                         KighmuLogger.error(TAG, "Session[${globalIdx+1}] tentative $attempt FAILED: ${e.message}")
@@ -127,54 +125,12 @@ class MultiSlowDnsEngine(
 
         KighmuLogger.info(TAG, "Ports SOCKS actifs: $connectedPorts")
 
-        // ── DIAGNOSTIC: Vérifier chaque port SOCKS avant de démarrer le balancer ──
-                connectedPorts.forEach { port ->
-            try {
-                val sock = java.net.Socket()
-                sock.connect(java.net.InetSocketAddress("127.0.0.1", port), 1000)
-                // Test handshake SOCKS5
-                val out = sock.getOutputStream()
-                val inp = sock.getInputStream()
-                out.write(byteArrayOf(5, 1, 0)) // SOCKS5 hello
-                out.flush()
-                val buf = ByteArray(2)
-                val read = inp.read(buf)
-                sock.close()
-                if (read == 2 && buf[0] == 5.toByte()) {
-                    KighmuLogger.info(TAG, "Port $port: SOCKS5 OK ✅ (réponse: ${buf[0]},${buf[1]})")
-                } else {
-                    KighmuLogger.warning(TAG, "Port $port: TCP OK mais SOCKS5 invalide ⚠️ (lu=$read)")
-                }
-            } catch (e: Exception) {
-                KighmuLogger.error(TAG, "Port $port: INACCESSIBLE ❌ (${e.message})")
-            }
-        }
-
-        // ── DIAGNOSTIC: Interface réseau active ──
-        try {
-            val interfaces = java.net.NetworkInterface.getNetworkInterfaces()
-        } catch (e: Exception) {
-            KighmuLogger.warning(TAG, "Interfaces réseau: ${e.message}")
-        }
-
-        // ── DIAGNOSTIC: HevTun2Socks disponibilité ──
-        KighmuLogger.info(TAG, "HevTun2Socks disponible: ${HevTun2Socks.isAvailable}")
-        KighmuLogger.info(TAG, "VpnService null: ${vpnService == null}")
 
         val balancer = SocksBalancer(connectedPorts, vpnService, maxBytesPerSec = 358400L)
         balancer.start()
         socksBalancer = balancer
         activePort = SocksBalancer.BALANCER_PORT
 
-        // ── DIAGNOSTIC: Vérifier que le balancer répond ──
-        delay(200)
-        try {
-            val sock = java.net.Socket()
-            sock.connect(java.net.InetSocketAddress("127.0.0.1", activePort), 1000)
-                        sock.close()
-        } catch (e: Exception) {
-            KighmuLogger.error(TAG, "Balancer port $activePort: INACCESSIBLE ❌ (${e.message})")
-        }
 
         KighmuLogger.info(TAG, "VPN prêt: ${successPorts.size} tunnels actifs port=$activePort")
 
@@ -261,26 +217,24 @@ class MultiSlowDnsEngine(
         // Démarrer tun2socks directement sur le port du balancer
         // Le balancer distribue le trafic sur tous les tunnels actifs
         val balancerPort = SocksBalancer.BALANCER_PORT
-        val tunnelCount = engines.count { it.isRunning() }
                 try {
             try { HevTun2Socks.stop() } catch (_: Exception) {}
             try { HevTun2Socks.init() } catch (_: Exception) {}
             if (HevTun2Socks.isAvailable && vpnService != null) {
-                val activePorts = engines.filter { it.isRunning() }.mapNotNull { it.getSocksPort() }
                                 Thread {
                     try {
                         HevTun2Socks.start(context, fd, balancerPort, vpnService, 8500)
-                        KighmuLogger.info(TAG, "HevTun2Socks démarré ✅ port=$balancerPort")
+                        KighmuLogger.info(TAG, "Interface TUN active")
                     } catch (e: Exception) {
                         KighmuLogger.error(TAG, "HevTun2Socks erreur: ${e.message}")
                     }
                 }.also { it.isDaemon = true }.start()
             } else {
                 // Fallback: HevTun2Socks non disponible - utiliser Tun2Socks JNI ou Relay Kotlin
-                KighmuLogger.warning(TAG, "HevTun2Socks non disponible (isAvailable=false) → fallback engine")
+                KighmuLogger.warning(TAG, "Fallback tun2socks")
                 val firstEngine = engines.firstOrNull { it.isRunning() } ?: engines.firstOrNull()
                 if (firstEngine != null) {
-                    KighmuLogger.warning(TAG, "Fallback → startTun2SocksOnPort fd=$fd port=$balancerPort")
+                    KighmuLogger.info(TAG, "Fallback tun2socks port=$balancerPort")
                     firstEngine.startTun2SocksOnPort(fd, balancerPort)
                 } else {
                     KighmuLogger.error(TAG, "Aucune session disponible pour tun2socks!")
