@@ -168,10 +168,10 @@ class ZivpnEngine(
                     log("Secure arrêté (code=$code)")
                 } catch (_: Exception) {}
             }.apply { isDaemon = true }.start()
-            // Attente active : Xray prêt dès que le port répond (max 3s)
+            // Attente active : Xray prêt dès que le port répond (max 5s, aligné avec XrayVpnEngine)
             var xrayReady = false
             var xrayWaited = 0
-            while (xrayWaited < 3000) {
+            while (xrayWaited < 5000) {
                 val alive = try { xrayProcess?.isAlive ?: false } catch (_: Exception) { false }
                 if (!alive) break
                 val portUp = try {
@@ -225,7 +225,7 @@ class ZivpnEngine(
             log("Démarrage interface TUN")
             HevTun2Socks.init()
             if (HevTun2Socks.isAvailable) {
-                HevTun2Socks.start(context, fd, LB_PORT, vpnService, mtu = 8500)
+                HevTun2Socks.start(context, fd, LB_PORT, vpnService, mtu = 1400)
                 log("Interface TUN active")
             } else {
                 KighmuLogger.error(TAG, "Interface TUN non disponible")
@@ -446,10 +446,13 @@ class ZivpnEngine(
         stopKotlinBalancer()
         uzProcesses.forEach { try { it.destroyForcibly() } catch (_: Exception) {} }
         uzProcesses.clear()
-        // Nettoyage nucléaire natif — fire and forget
-        try { Runtime.getRuntime().exec(arrayOf("sh", "-c",
-            "killall -9 libuz_core.so libxray.so 2>/dev/null; pkill -9 -f libuz_core 2>/dev/null"
-        )) } catch (_: Exception) {}
+        // Nettoyage nucléaire natif — attendu avec timeout pour éviter de tuer un process relancé entre-temps
+        try {
+            val killProc = Runtime.getRuntime().exec(arrayOf("sh", "-c",
+                "killall -9 libuz_core.so libxray.so 2>/dev/null; pkill -9 -f libuz_core 2>/dev/null"
+            ))
+            killProc.waitFor(800, java.util.concurrent.TimeUnit.MILLISECONDS)
+        } catch (_: Exception) {}
         log("Tunnel UDP arrêté")
     }
 

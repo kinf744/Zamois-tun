@@ -70,9 +70,7 @@ class SocksBalancer(
                 if (!running) break
                 val ports = activePorts.toList()
                 for (port in ports) {
-                    val ok = try {
-                        java.net.Socket("127.0.0.1", port).also { it.close() }; true
-                    } catch (_: Exception) { false }
+                    val ok = checkSocks5EndToEnd(port)
                     if (ok) {
                         markPortSuccess(port)
                     } else {
@@ -131,6 +129,32 @@ class SocksBalancer(
             healthyPorts = (healthyPorts + port).distinct()
 
         }
+    }
+
+    private fun checkSocks5EndToEnd(port: Int): Boolean {
+        return try {
+            val sock = Socket()
+            sock.connect(InetSocketAddress("127.0.0.1", port), 1500)
+            sock.soTimeout = 2000
+            val out = sock.getOutputStream()
+            val inp = sock.getInputStream()
+            out.write(byteArrayOf(0x05, 0x01, 0x00)); out.flush()
+            val greet = ByteArray(2)
+            var n = inp.read(greet)
+            if (n < 2 || greet[1] != 0x00.toByte()) { sock.close(); return false }
+            val target = "1.1.1.1".toByteArray()
+            out.write(byteArrayOf(0x05, 0x01, 0x00, 0x01, 1, 1, 1, 1, 1, (443 shr 8).toByte(), (443 and 0xFF).toByte()))
+            out.flush()
+            val resp = ByteArray(10)
+            var total = 0
+            while (total < 10) {
+                val r = inp.read(resp, total, 10 - total)
+                if (r < 0) break
+                total += r
+            }
+            sock.close()
+            total >= 2 && resp[1] == 0x00.toByte()
+        } catch (_: Exception) { false }
     }
 
     private fun connectToPort(targetPort: Int): Socket {
