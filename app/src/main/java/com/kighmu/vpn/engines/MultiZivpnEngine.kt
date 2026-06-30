@@ -76,7 +76,7 @@ class MultiZivpnEngine(
             while (attempt < MAX_RETRIES && port <= 0) {
                 attempt++
                 KighmuLogger.info(TAG, "Profil[${idx + 1}] tentative $attempt/$MAX_RETRIES...")
-                val engine = ZivpnEngine(cfg, context, vpnService)
+                val engine = ZivpnEngine(cfg, context, vpnService, idx)
                 try {
                     port = withTimeoutOrNull(SESSION_TIMEOUT_MS) { engine.start() } ?: -1
                     if (port > 0) {

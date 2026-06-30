@@ -18,17 +18,23 @@ import java.util.concurrent.Executors
 class ZivpnEngine(
     private val config: KighmuConfig,
     private val context: Context,
-    private val vpnService: VpnService? = null
+    private val vpnService: VpnService? = null,
+    private val engineIndex: Int = 0
 ) : TunnelEngine {
 
     companion object {
         const val TAG = "ZivpnEngine"
-        const val LB_PORT    = 7777
-        const val BASE_UZ_PORT = 7778
+        private const val BASE_LB_PORT = 7777
+        private const val BASE_UZ_PORT_START = 7778
+        private const val PORT_SPACING = 100
         fun findFreePort(): Int {
             return try { java.net.ServerSocket(0).use { it.localPort } } catch (_: Exception) { (10000..60000).random() }
         }
     }
+
+    // Ports dynamiques par instance pour éviter collisions multi-profil ZIVPN
+    private val LB_PORT: Int get() = BASE_LB_PORT + (engineIndex * PORT_SPACING)
+    private val BASE_UZ_PORT: Int get() = BASE_UZ_PORT_START + (engineIndex * PORT_SPACING)
 
     private var clashPort: Int = 7890
 
