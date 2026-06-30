@@ -17,8 +17,8 @@ class SocksBalancer(
     companion object {
         const val TAG = "SocksBalancer"
         var BALANCER_PORT = 10900
-        const val PIPE_BUFFER_SIZE = 131072
-        const val MAX_THREADS = 200
+        const val PIPE_BUFFER_SIZE = 65536
+        const val MAX_THREADS = 500
     }
 
     private var serverSocket: ServerSocket? = null
@@ -30,7 +30,11 @@ class SocksBalancer(
     @Volatile private var activePorts: List<Int> = initialPorts
     @Volatile private var healthyPorts: List<Int> = initialPorts
     private val failCount = java.util.concurrent.ConcurrentHashMap<Int, Int>()
-    private val threadPool = Executors.newFixedThreadPool(MAX_THREADS)
+    private val threadPool = java.util.concurrent.ThreadPoolExecutor(
+        20, MAX_THREADS, 60L, java.util.concurrent.TimeUnit.SECONDS,
+        java.util.concurrent.SynchronousQueue(),
+        java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy()
+    )
 
     private val totalConnections      = AtomicInteger(0)
     private val successConnections    = AtomicInteger(0)
@@ -57,7 +61,34 @@ class SocksBalancer(
                     if (running) KighmuLogger.error(TAG, "Accept error: ${e.message}")
                 }
             }
-        }.start()
+        }.apply { isDaemon = true; name = "kighmu-balancer" }.start()
+
+        // Health check périodique des upstreams (toutes les 10s)
+        Thread {
+            while (running) {
+                try { Thread.sleep(10_000) } catch (_: InterruptedException) { break }
+                if (!running) break
+                val ports = activePorts.toList()
+                for (port in ports) {
+                    val ok = try {
+                        java.net.Socket("127.0.0.1", port).also { it.close() }; true
+                    } catch (_: Exception) { false }
+                    if (ok) {
+                        markPortSuccess(port)
+                    } else {
+                        val fails = (failCount[port] ?: 0) + 1
+                        failCount[port] = fails
+                        if (fails >= 5) {
+                            val h = healthyPorts.filter { it != port }
+                            if (h.isNotEmpty()) {
+                                healthyPorts = h
+                                KighmuLogger.warning(TAG, "Health: port $port hors ligne")
+                            }
+                        }
+                    }
+                }
+            }
+        }.apply { isDaemon = true; name = "kighmu-health" }.start()
     }
 
     fun updatePorts(newPorts: List<Int>) {
@@ -85,7 +116,7 @@ class SocksBalancer(
     private fun markPortFailed(port: Int) {
         val fails = (failCount[port] ?: 0) + 1
         failCount[port] = fails
-        if (fails >= 2) {
+        if (fails >= 5) {
             val h = healthyPorts.filter { it != port }
             if (h.isNotEmpty()) {
                 healthyPorts = h
@@ -115,7 +146,7 @@ class SocksBalancer(
 
     private fun relay(client: Socket, targetPort: Int) {
         try {
-            client.soTimeout = 0
+            client.soTimeout = 120_000
             client.setPerformancePreferences(0, 0, 1)
             client.receiveBufferSize = PIPE_BUFFER_SIZE
             client.sendBufferSize    = PIPE_BUFFER_SIZE
@@ -141,7 +172,7 @@ class SocksBalancer(
             markPortSuccess(targetPort)
 
             val s = server!!
-            s.soTimeout = 0
+            s.soTimeout = 120_000
             s.tcpNoDelay = true
 
             threadPool.execute {
@@ -192,6 +223,8 @@ class SocksBalancer(
                 totalBytesTransferred.addAndGet(n.toLong())
                 if (inp.available() <= 0) out.flush()
             }
+        } catch (_: java.net.SocketTimeoutException) {
+            // Timeout normal → connexion zombie tuée proprement
         } catch (_: Exception) {}
     }
 }
